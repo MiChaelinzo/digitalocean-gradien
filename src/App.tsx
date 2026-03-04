@@ -7,11 +7,14 @@ import { ThreatDashboard } from '@/components/ThreatDashboard'
 import { SessionHistory } from '@/components/SessionHistory'
 import { KeyboardShortcuts } from '@/components/KeyboardShortcuts'
 import { StatusNotifications } from '@/components/StatusNotifications'
+import { ThreatNotificationPanel } from '@/components/ThreatNotificationPanel'
+import { useThreatNotifications } from '@/hooks/use-threat-notifications'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown } from '@phosphor-icons/react'
+import { Badge } from '@/components/ui/badge'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -30,8 +33,12 @@ function App() {
   const [activeTab, setActiveTab] = useState('intelligence')
   const [showHistory, setShowHistory] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const { notifications } = useThreatNotifications()
+  const unacknowledgedCount = (notifications || []).filter(n => !n.dismissed && !n.acknowledged).length
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -266,6 +273,23 @@ Provide detailed military intelligence analysis with actionable recommendations.
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowNotifications(true)}
+              className="gap-2 text-xs font-mono uppercase relative"
+              title="Threat Alerts"
+            >
+              <Bell size={16} weight={unacknowledgedCount > 0 ? 'fill' : 'regular'} />
+              {unacknowledgedCount > 0 && (
+                <Badge 
+                  className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center bg-destructive text-destructive-foreground text-[10px] font-bold pulse-glow"
+                >
+                  {unacknowledgedCount > 9 ? '9+' : unacknowledgedCount}
+                </Badge>
+              )}
+              <span className="hidden md:inline">Alerts</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowShortcuts(true)}
               className="gap-2 text-xs font-mono uppercase"
               title="Keyboard Shortcuts (Ctrl/Cmd+K)"
@@ -404,6 +428,13 @@ Provide detailed military intelligence analysis with actionable recommendations.
 
       {showShortcuts && (
         <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />
+      )}
+
+      {showNotifications && (
+        <ThreatNotificationPanel
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
+        />
       )}
     </div>
   )
