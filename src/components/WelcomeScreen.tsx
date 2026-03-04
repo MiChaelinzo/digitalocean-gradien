@@ -67,7 +67,7 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
                 </div>
                 <div>
                   <div className="font-semibold text-xs uppercase tracking-wider mb-1.5">{example.title}</div>
-                  <div className="text-xs text-muted-foreground leading-relaxed font-mono">
+                  <div className="text-xs text-foreground/70 leading-relaxed font-mono">
                     {example.prompt.substring(0, 70)}...
                   </div>
                 </div>
