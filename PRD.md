@@ -54,6 +54,13 @@ A classified-level military intelligence and defense monitoring platform that pr
 - **Progression**: Dashboard loads → Threats sorted by severity → User clicks alert → Detailed analysis opens → Response options presented
 - **Success criteria**: All critical threats visible without scrolling; alerts update in real-time; severity categorization accurate
 
+### AI-Powered Threat Prediction Timeline
+- **Functionality**: 72-hour forward projection timeline displaying AI-generated threat scenarios with probability assessments, severity indicators, and strategic recommendations. Users can select analysis depth (Basic/Detailed/Comprehensive) and regenerate predictions. Each scenario includes timeframe, threat type, affected regions, key contributing factors, and recommended countermeasures
+- **Purpose**: Proactive threat assessment enabling strategic planning and resource pre-positioning based on predicted scenarios rather than reactive responses
+- **Trigger**: Automatic generation when Predictions tab is accessed; manual regeneration available; contextually aware of recent intelligence conversations
+- **Progression**: User switches to Predictions tab → AI analyzes current geopolitical context → Generates 5 scenarios across 72-hour timeline → Visual timeline displays threat markers → User clicks scenario card → Expands to show full details including key factors, recommendations, affected regions, and AI confidence score → User adjusts analysis depth → Regenerates predictions with different detail level
+- **Success criteria**: Predictions generate within 5 seconds; scenarios are realistic and contextually relevant; probability scores align with current tensions; recommendations are actionable; timeline visualization clearly shows temporal distribution; expandable cards reveal comprehensive threat intelligence
+
 ## Edge Case Handling
 
 - **Connection Loss**: Display offline mode with last-known intelligence cached; indicate data staleness with clear timestamps

@@ -15,13 +15,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
 import { BookmarksPanel, useBookmarks } from '@/components/BookmarksPanel'
 import { ReportGenerator } from '@/components/ReportGenerator'
 import { ThreatComparison } from '@/components/ThreatComparison'
+import { ThreatPredictionTimeline } from '@/components/ThreatPredictionTimeline'
 
 interface Message {
   id: string
@@ -90,6 +91,9 @@ function App() {
       } else if (isMod && e.key === '3') {
         e.preventDefault()
         setActiveTab('threats')
+      } else if (isMod && e.key === '4') {
+        e.preventDefault()
+        setActiveTab('predictions')
       } else if (e.key === 'Escape') {
         setShowHistory(false)
         setShowShortcuts(false)
@@ -441,6 +445,13 @@ Provide detailed military intelligence analysis with actionable recommendations.
                   <Target size={16} weight="fill" />
                   <span className="hidden sm:inline">Threats</span>
                 </TabsTrigger>
+                <TabsTrigger 
+                  value="predictions" 
+                  className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary font-mono text-xs uppercase px-3 md:px-4 py-2"
+                >
+                  <TrendUp size={16} weight="fill" />
+                  <span className="hidden sm:inline">Predictions</span>
+                </TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -498,6 +509,16 @@ Provide detailed military intelligence analysis with actionable recommendations.
               <ScrollArea className="h-full">
                 <div className="container mx-auto px-4 md:px-6 py-6">
                   <ThreatDashboard />
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="predictions" className="h-full m-0">
+              <ScrollArea className="h-full">
+                <div className="container mx-auto px-4 md:px-6 py-6">
+                  <ThreatPredictionTimeline 
+                    threatContext={messages && messages.length > 0 ? messages[messages.length - 1].content : undefined}
+                  />
                 </div>
               </ScrollArea>
             </TabsContent>

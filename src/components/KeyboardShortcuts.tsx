@@ -18,6 +18,7 @@ const shortcuts = [
   { key: 'Ctrl/Cmd + 1', description: 'Switch to Intelligence tab', context: 'Anytime' },
   { key: 'Ctrl/Cmd + 2', description: 'Switch to 3D Globe tab', context: 'Anytime' },
   { key: 'Ctrl/Cmd + 3', description: 'Switch to Threats tab', context: 'Anytime' },
+  { key: 'Ctrl/Cmd + 4', description: 'Switch to Predictions tab', context: 'Anytime' },
   { key: 'Esc', description: 'Close dialogs/modals', context: 'Dialog open' },
 ]
 
