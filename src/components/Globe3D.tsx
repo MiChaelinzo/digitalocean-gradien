@@ -380,7 +380,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       return path
     }
 
-    map.once('load', () => {
+    const addTrajectories = () => {
+      if (!map.isStyleLoaded()) return
+      
       if (showTrajectories) {
         missileTrajectories.forEach((trajectory, index) => {
           const sourceId = `trajectory-${trajectory.id}`
@@ -393,91 +395,101 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
             trajectory.type === 'hypersonic' ? 0.15 : trajectory.type === 'ballistic' ? 0.25 : 0.1
           )
 
-          if (!map.getSource(sourceId)) {
-            map.addSource(sourceId, {
-              type: 'geojson',
-              data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'LineString',
-                  coordinates: path
+          try {
+            if (!map.getSource(sourceId)) {
+              map.addSource(sourceId, {
+                type: 'geojson',
+                data: {
+                  type: 'Feature',
+                  properties: {},
+                  geometry: {
+                    type: 'LineString',
+                    coordinates: path
+                  }
                 }
-              }
-            })
+              })
 
-            const trajectoryColor = 
-              trajectory.severity === 'critical' ? '#ff3333' :
-              trajectory.severity === 'high' ? '#ffaa33' : '#4488ff'
+              const trajectoryColor = 
+                trajectory.severity === 'critical' ? '#ff3333' :
+                trajectory.severity === 'high' ? '#ffaa33' : '#4488ff'
 
-            map.addLayer({
-              id: lineLayerId,
-              type: 'line',
-              source: sourceId,
-              layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-              },
-              paint: {
-                'line-color': trajectoryColor,
-                'line-width': 2,
-                'line-opacity': 0.6,
-                'line-dasharray': [2, 2]
-              }
-            })
-
-            map.addSource(`${sourceId}-particle`, {
-              type: 'geojson',
-              data: {
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Point',
-                  coordinates: path[0]
+              map.addLayer({
+                id: lineLayerId,
+                type: 'line',
+                source: sourceId,
+                layout: {
+                  'line-join': 'round',
+                  'line-cap': 'round'
+                },
+                paint: {
+                  'line-color': trajectoryColor,
+                  'line-width': 2,
+                  'line-opacity': 0.6,
+                  'line-dasharray': [2, 2]
                 }
-              }
-            })
+              })
 
-            map.addLayer({
-              id: particleLayerId,
-              type: 'circle',
-              source: `${sourceId}-particle`,
-              paint: {
-                'circle-radius': 5,
-                'circle-color': trajectoryColor,
-                'circle-blur': 0.3,
-                'circle-opacity': 0.9
-              }
-            })
-
-            let particleIndex = 0
-            const speed = trajectory.type === 'hypersonic' ? 3 : trajectory.type === 'ballistic' ? 2 : 1
-            
-            const animateParticle = () => {
-              if (!map.getSource(`${sourceId}-particle`)) return
-              
-              particleIndex = (particleIndex + speed) % path.length
-              const particleSource = map.getSource(`${sourceId}-particle`) as mapboxgl.GeoJSONSource
-              
-              if (particleSource) {
-                particleSource.setData({
+              map.addSource(`${sourceId}-particle`, {
+                type: 'geojson',
+                data: {
                   type: 'Feature',
                   properties: {},
                   geometry: {
                     type: 'Point',
-                    coordinates: path[Math.floor(particleIndex)]
+                    coordinates: path[0]
                   }
-                })
+                }
+              })
+
+              map.addLayer({
+                id: particleLayerId,
+                type: 'circle',
+                source: `${sourceId}-particle`,
+                paint: {
+                  'circle-radius': 5,
+                  'circle-color': trajectoryColor,
+                  'circle-blur': 0.3,
+                  'circle-opacity': 0.9
+                }
+              })
+
+              let particleIndex = 0
+              const speed = trajectory.type === 'hypersonic' ? 3 : trajectory.type === 'ballistic' ? 2 : 1
+              
+              const animateParticle = () => {
+                const particleSource = map.getSource(`${sourceId}-particle`)
+                if (!particleSource) return
+                
+                particleIndex = (particleIndex + speed) % path.length
+                
+                if (particleSource && (particleSource as mapboxgl.GeoJSONSource).setData) {
+                  (particleSource as mapboxgl.GeoJSONSource).setData({
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                      type: 'Point',
+                      coordinates: path[Math.floor(particleIndex)]
+                    }
+                  })
+                }
+                
+                requestAnimationFrame(animateParticle)
               }
               
-              requestAnimationFrame(animateParticle)
+              animateParticle()
             }
-            
-            animateParticle()
+          } catch (error) {
+            console.warn(`Error adding trajectory ${trajectory.id}:`, error)
           }
         })
       }
-    })
+    }
+
+    if (map.isStyleLoaded()) {
+      addTrajectories()
+    } else {
+      map.once('style.load', addTrajectories)
+    }
 
     let rotationAnimationFrame: number
     const rotateGlobe = () => {
@@ -507,7 +519,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     
     const map = mapRef.current
 
-    map.once('load', () => {
+    const updateWeatherLayers = () => {
+      if (!map.isStyleLoaded()) return
+
       const layersToAdd: Array<{ id: string, type: WeatherLayerType }> = [
         { id: 'precipitation-layer', type: 'precipitation' },
         { id: 'wind-layer', type: 'wind' },
@@ -516,33 +530,48 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       ]
 
       layersToAdd.forEach(({ id, type }) => {
-        if (!map.getSource(id)) {
-          map.addSource(id, {
-            type: 'raster',
-            tiles: [getWeatherTileUrl(type)],
-            tileSize: 256
-          })
+        try {
+          const source = map.getSource(id)
+          
+          if (!source) {
+            map.addSource(id, {
+              type: 'raster',
+              tiles: [getWeatherTileUrl(type)],
+              tileSize: 256
+            })
 
-          map.addLayer({
-            id,
-            type: 'raster',
-            source: id,
-            paint: {
-              'raster-opacity': 0.6
-            },
-            layout: {
-              visibility: weatherLayers.has(type) ? 'visible' : 'none'
+            map.addLayer({
+              id,
+              type: 'raster',
+              source: id,
+              paint: {
+                'raster-opacity': 0.6
+              },
+              layout: {
+                visibility: weatherLayers.has(type) ? 'visible' : 'none'
+              }
+            })
+          } else {
+            const layer = map.getLayer(id)
+            if (layer) {
+              map.setLayoutProperty(
+                id,
+                'visibility',
+                weatherLayers.has(type) ? 'visible' : 'none'
+              )
             }
-          })
-        } else {
-          map.setLayoutProperty(
-            id,
-            'visibility',
-            weatherLayers.has(type) ? 'visible' : 'none'
-          )
+          }
+        } catch (error) {
+          console.warn(`Error updating weather layer ${id}:`, error)
         }
       })
-    })
+    }
+
+    if (map.isStyleLoaded()) {
+      updateWeatherLayers()
+    } else {
+      map.once('style.load', updateWeatherLayers)
+    }
   }, [weatherLayers])
 
   const getWeatherTileUrl = (type: WeatherLayerType): string => {
