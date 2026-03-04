@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning } from '@phosphor-icons/react'
+import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning, Rocket } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DropdownMenu,
@@ -105,6 +105,52 @@ const threatLocations: ThreatLocation[] = [
   }
 ]
 
+interface MissileTrajectory {
+  id: string
+  from: { lat: number, lng: number, name: string }
+  to: { lat: number, lng: number, name: string }
+  severity: 'critical' | 'high' | 'medium'
+  type: 'ballistic' | 'hypersonic' | 'cruise'
+}
+
+const missileTrajectories: MissileTrajectory[] = [
+  {
+    id: 'iran-israel-1',
+    from: { lat: 32.4, lng: 53.7, name: 'Iran' },
+    to: { lat: 32.0, lng: 35.0, name: 'Israel' },
+    severity: 'critical',
+    type: 'ballistic'
+  },
+  {
+    id: 'iran-gcc-1',
+    from: { lat: 27.2, lng: 56.3, name: 'Iran' },
+    to: { lat: 26.0, lng: 50.5, name: 'Bahrain' },
+    severity: 'high',
+    type: 'cruise'
+  },
+  {
+    id: 'russia-ukraine-1',
+    from: { lat: 55.7, lng: 37.6, name: 'Russia' },
+    to: { lat: 50.4, lng: 30.5, name: 'Kyiv' },
+    severity: 'critical',
+    type: 'hypersonic'
+  },
+  {
+    id: 'china-taiwan-1',
+    from: { lat: 26.1, lng: 119.3, name: 'Fujian' },
+    to: { lat: 25.0, lng: 121.5, name: 'Taipei' },
+    severity: 'high',
+    type: 'ballistic'
+  },
+  {
+    id: 'nkorea-skorea-1',
+    from: { lat: 39.0, lng: 125.7, name: 'North Korea' },
+    to: { lat: 37.5, lng: 127.0, name: 'Seoul' },
+    severity: 'high',
+    type: 'ballistic'
+  }
+]
+
 interface Globe3DProps {
   onThreatSelect?: (threat: ThreatLocation) => void
 }
@@ -120,6 +166,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [is3D, setIs3D] = useState(true)
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite' | 'terrain'>('satellite')
   const [weatherLayers, setWeatherLayers] = useState<Set<string>>(new Set())
+  const [showTrajectories, setShowTrajectories] = useState(true)
   
   type WeatherLayerType = 'precipitation' | 'wind' | 'temperature' | 'clouds'
 
@@ -311,6 +358,125 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       markersRef.current.push(marker)
     })
 
+    const createCurvedPath = (from: [number, number], to: [number, number], arcHeight: number = 0.2) => {
+      const steps = 100
+      const path: [number, number][] = []
+      
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps
+        const lng = from[0] + (to[0] - from[0]) * t
+        const lat = from[1] + (to[1] - from[1]) * t
+        
+        const distance = Math.sqrt(
+          Math.pow(to[0] - from[0], 2) + Math.pow(to[1] - from[1], 2)
+        )
+        
+        const heightOffset = Math.sin(t * Math.PI) * distance * arcHeight
+        path.push([lng, lat + heightOffset])
+      }
+      
+      return path
+    }
+
+    map.once('load', () => {
+      if (showTrajectories) {
+        missileTrajectories.forEach((trajectory, index) => {
+          const sourceId = `trajectory-${trajectory.id}`
+          const lineLayerId = `trajectory-line-${trajectory.id}`
+          const particleLayerId = `trajectory-particle-${trajectory.id}`
+          
+          const path = createCurvedPath(
+            [trajectory.from.lng, trajectory.from.lat],
+            [trajectory.to.lng, trajectory.to.lat],
+            trajectory.type === 'hypersonic' ? 0.15 : trajectory.type === 'ballistic' ? 0.25 : 0.1
+          )
+
+          if (!map.getSource(sourceId)) {
+            map.addSource(sourceId, {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'LineString',
+                  coordinates: path
+                }
+              }
+            })
+
+            const trajectoryColor = 
+              trajectory.severity === 'critical' ? '#ff3333' :
+              trajectory.severity === 'high' ? '#ffaa33' : '#4488ff'
+
+            map.addLayer({
+              id: lineLayerId,
+              type: 'line',
+              source: sourceId,
+              layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+              },
+              paint: {
+                'line-color': trajectoryColor,
+                'line-width': 2,
+                'line-opacity': 0.6,
+                'line-dasharray': [2, 2]
+              }
+            })
+
+            map.addSource(`${sourceId}-particle`, {
+              type: 'geojson',
+              data: {
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Point',
+                  coordinates: path[0]
+                }
+              }
+            })
+
+            map.addLayer({
+              id: particleLayerId,
+              type: 'circle',
+              source: `${sourceId}-particle`,
+              paint: {
+                'circle-radius': 5,
+                'circle-color': trajectoryColor,
+                'circle-blur': 0.3,
+                'circle-opacity': 0.9
+              }
+            })
+
+            let particleIndex = 0
+            const speed = trajectory.type === 'hypersonic' ? 3 : trajectory.type === 'ballistic' ? 2 : 1
+            
+            const animateParticle = () => {
+              if (!map.getSource(`${sourceId}-particle`)) return
+              
+              particleIndex = (particleIndex + speed) % path.length
+              const particleSource = map.getSource(`${sourceId}-particle`) as mapboxgl.GeoJSONSource
+              
+              if (particleSource) {
+                particleSource.setData({
+                  type: 'Feature',
+                  properties: {},
+                  geometry: {
+                    type: 'Point',
+                    coordinates: path[Math.floor(particleIndex)]
+                  }
+                })
+              }
+              
+              requestAnimationFrame(animateParticle)
+            }
+            
+            animateParticle()
+          }
+        })
+      }
+    })
+
     let rotationAnimationFrame: number
     const rotateGlobe = () => {
       if (is3D && map.isMoving() === false) {
@@ -332,7 +498,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       markersRef.current = []
       map.remove()
     }
-  }, [is3D, mapStyle, onThreatSelect])
+  }, [is3D, mapStyle, onThreatSelect, showTrajectories])
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -466,6 +632,11 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           <Badge variant="outline" className="bg-primary/20 text-primary border-primary/50 font-mono text-xs uppercase">
             {threatLocations.length} Threats
           </Badge>
+          {showTrajectories && (
+            <Badge variant="outline" className="bg-accent/20 text-accent border-accent/50 font-mono text-xs uppercase">
+              {missileTrajectories.length} Active Trajectories
+            </Badge>
+          )}
           {weatherLayers.size > 0 && (
             <Badge variant="outline" className="bg-accent/20 text-accent border-accent/50 font-mono text-xs uppercase">
               {weatherLayers.size} Weather Layer{weatherLayers.size > 1 ? 's' : ''} Active
@@ -474,6 +645,16 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         </div>
 
         <div className="absolute top-4 right-4 z-10 flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowTrajectories(!showTrajectories)}
+            className={`bg-background/80 backdrop-blur-sm gap-2 ${showTrajectories ? 'border-accent text-accent' : ''}`}
+            title={showTrajectories ? "Hide Missile Trajectories" : "Show Missile Trajectories"}
+          >
+            <Rocket size={16} weight={showTrajectories ? 'fill' : 'regular'} />
+            <span className="hidden sm:inline text-xs font-mono">Trajectories</span>
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
