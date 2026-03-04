@@ -159,35 +159,38 @@ interface CityMarker {
   lat: number
   lng: number
   type: 'capital' | 'major' | 'strategic'
-  population?: string
+  population: string
+  populationNum: number
+  strategicImportance: 'critical' | 'high' | 'medium' | 'low'
+  strategicNotes: string
 }
 
 const majorCities: CityMarker[] = [
-  { id: 'washington', name: 'Washington D.C.', country: 'USA', lat: 38.9072, lng: -77.0369, type: 'capital' },
-  { id: 'moscow', name: 'Moscow', country: 'Russia', lat: 55.7558, lng: 37.6173, type: 'capital' },
-  { id: 'beijing', name: 'Beijing', country: 'China', lat: 39.9042, lng: 116.4074, type: 'capital' },
-  { id: 'tehran', name: 'Tehran', country: 'Iran', lat: 35.6892, lng: 51.3890, type: 'capital' },
-  { id: 'jerusalem', name: 'Jerusalem', country: 'Israel', lat: 31.7683, lng: 35.2137, type: 'capital' },
-  { id: 'kyiv', name: 'Kyiv', country: 'Ukraine', lat: 50.4501, lng: 30.5234, type: 'capital' },
-  { id: 'seoul', name: 'Seoul', country: 'South Korea', lat: 37.5665, lng: 126.9780, type: 'capital' },
-  { id: 'pyongyang', name: 'Pyongyang', country: 'North Korea', lat: 39.0392, lng: 125.7625, type: 'capital' },
-  { id: 'taipei', name: 'Taipei', country: 'Taiwan', lat: 25.0330, lng: 121.5654, type: 'capital' },
-  { id: 'tokyo', name: 'Tokyo', country: 'Japan', lat: 35.6762, lng: 139.6503, type: 'capital' },
-  { id: 'london', name: 'London', country: 'UK', lat: 51.5074, lng: -0.1278, type: 'capital' },
-  { id: 'paris', name: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, type: 'capital' },
-  { id: 'berlin', name: 'Berlin', country: 'Germany', lat: 52.5200, lng: 13.4050, type: 'capital' },
-  { id: 'riyadh', name: 'Riyadh', country: 'Saudi Arabia', lat: 24.7136, lng: 46.6753, type: 'capital' },
-  { id: 'dubai', name: 'Dubai', country: 'UAE', lat: 25.2048, lng: 55.2708, type: 'strategic' },
-  { id: 'istanbul', name: 'Istanbul', country: 'Turkey', lat: 41.0082, lng: 28.9784, type: 'strategic' },
-  { id: 'cairo', name: 'Cairo', country: 'Egypt', lat: 30.0444, lng: 31.2357, type: 'capital' },
-  { id: 'mumbai', name: 'Mumbai', country: 'India', lat: 19.0760, lng: 72.8777, type: 'major' },
-  { id: 'delhi', name: 'New Delhi', country: 'India', lat: 28.6139, lng: 77.2090, type: 'capital' },
-  { id: 'singapore', name: 'Singapore', country: 'Singapore', lat: 1.3521, lng: 103.8198, type: 'capital' },
-  { id: 'sydney', name: 'Sydney', country: 'Australia', lat: -33.8688, lng: 151.2093, type: 'major' },
-  { id: 'brasilia', name: 'Brasília', country: 'Brazil', lat: -15.8267, lng: -47.9218, type: 'capital' },
-  { id: 'havana', name: 'Havana', country: 'Cuba', lat: 23.1136, lng: -82.3666, type: 'capital' },
-  { id: 'mexico-city', name: 'Mexico City', country: 'Mexico', lat: 19.4326, lng: -99.1332, type: 'capital' },
-  { id: 'ottawa', name: 'Ottawa', country: 'Canada', lat: 45.4215, lng: -75.6972, type: 'capital' }
+  { id: 'washington', name: 'Washington D.C.', country: 'USA', lat: 38.9072, lng: -77.0369, type: 'capital', population: '700K', populationNum: 700000, strategicImportance: 'critical', strategicNotes: 'US capital, Pentagon, NATO command center' },
+  { id: 'moscow', name: 'Moscow', country: 'Russia', lat: 55.7558, lng: 37.6173, type: 'capital', population: '12.6M', populationNum: 12600000, strategicImportance: 'critical', strategicNotes: 'Russian military command, nuclear arsenal control' },
+  { id: 'beijing', name: 'Beijing', country: 'China', lat: 39.9042, lng: 116.4074, type: 'capital', population: '21.5M', populationNum: 21500000, strategicImportance: 'critical', strategicNotes: 'PLA headquarters, cyber warfare center' },
+  { id: 'tehran', name: 'Tehran', country: 'Iran', lat: 35.6892, lng: 51.3890, type: 'capital', population: '9.1M', populationNum: 9100000, strategicImportance: 'high', strategicNotes: 'IRGC headquarters, missile production facilities' },
+  { id: 'jerusalem', name: 'Jerusalem', country: 'Israel', lat: 31.7683, lng: 35.2137, type: 'capital', population: '940K', populationNum: 940000, strategicImportance: 'critical', strategicNotes: 'IDF command center, Iron Dome control' },
+  { id: 'kyiv', name: 'Kyiv', country: 'Ukraine', lat: 50.4501, lng: 30.5234, type: 'capital', population: '2.9M', populationNum: 2900000, strategicImportance: 'critical', strategicNotes: 'Active war zone, air defense hub' },
+  { id: 'seoul', name: 'Seoul', country: 'South Korea', lat: 37.5665, lng: 126.9780, type: 'capital', population: '9.7M', populationNum: 9700000, strategicImportance: 'critical', strategicNotes: 'US Forces Korea HQ, 50km from DMZ' },
+  { id: 'pyongyang', name: 'Pyongyang', country: 'North Korea', lat: 39.0392, lng: 125.7625, type: 'capital', population: '3.1M', populationNum: 3100000, strategicImportance: 'high', strategicNotes: 'Nuclear weapons command, ICBM facilities' },
+  { id: 'taipei', name: 'Taipei', country: 'Taiwan', lat: 25.0330, lng: 121.5654, type: 'capital', population: '2.6M', populationNum: 2600000, strategicImportance: 'critical', strategicNotes: 'Semiconductor hub, missile defense systems' },
+  { id: 'tokyo', name: 'Tokyo', country: 'Japan', lat: 35.6762, lng: 139.6503, type: 'capital', population: '14.0M', populationNum: 14000000, strategicImportance: 'high', strategicNotes: 'US 7th Fleet support, regional defense hub' },
+  { id: 'london', name: 'London', country: 'UK', lat: 51.5074, lng: -0.1278, type: 'capital', population: '9.0M', populationNum: 9000000, strategicImportance: 'high', strategicNotes: 'NATO intelligence center, naval command' },
+  { id: 'paris', name: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, type: 'capital', population: '2.2M', populationNum: 2200000, strategicImportance: 'high', strategicNotes: 'Nuclear deterrent command, EU military HQ' },
+  { id: 'berlin', name: 'Berlin', country: 'Germany', lat: 52.5200, lng: 13.4050, type: 'capital', population: '3.6M', populationNum: 3600000, strategicImportance: 'medium', strategicNotes: 'NATO coordination center, Bundeswehr HQ' },
+  { id: 'riyadh', name: 'Riyadh', country: 'Saudi Arabia', lat: 24.7136, lng: 46.6753, type: 'capital', population: '7.7M', populationNum: 7700000, strategicImportance: 'high', strategicNotes: 'Oil infrastructure, Patriot missile batteries' },
+  { id: 'dubai', name: 'Dubai', country: 'UAE', lat: 25.2048, lng: 55.2708, type: 'strategic', population: '3.5M', populationNum: 3500000, strategicImportance: 'high', strategicNotes: 'Naval base, regional logistics hub' },
+  { id: 'istanbul', name: 'Istanbul', country: 'Turkey', lat: 41.0082, lng: 28.9784, type: 'strategic', population: '15.8M', populationNum: 15800000, strategicImportance: 'high', strategicNotes: 'Bosphorus control, NATO airbase access' },
+  { id: 'cairo', name: 'Cairo', country: 'Egypt', lat: 30.0444, lng: 31.2357, type: 'capital', population: '21.3M', populationNum: 21300000, strategicImportance: 'medium', strategicNotes: 'Suez Canal proximity, regional air power' },
+  { id: 'mumbai', name: 'Mumbai', country: 'India', lat: 19.0760, lng: 72.8777, type: 'major', population: '20.4M', populationNum: 20400000, strategicImportance: 'medium', strategicNotes: 'Naval headquarters, economic center' },
+  { id: 'delhi', name: 'New Delhi', country: 'India', lat: 28.6139, lng: 77.2090, type: 'capital', population: '32.9M', populationNum: 32900000, strategicImportance: 'critical', strategicNotes: 'Nuclear command, military operations center' },
+  { id: 'singapore', name: 'Singapore', country: 'Singapore', lat: 1.3521, lng: 103.8198, type: 'capital', population: '5.9M', populationNum: 5900000, strategicImportance: 'high', strategicNotes: 'Maritime chokepoint, US naval facilities' },
+  { id: 'sydney', name: 'Sydney', country: 'Australia', lat: -33.8688, lng: 151.2093, type: 'major', population: '5.3M', populationNum: 5300000, strategicImportance: 'medium', strategicNotes: 'Pacific fleet base, intelligence sharing hub' },
+  { id: 'brasilia', name: 'Brasília', country: 'Brazil', lat: -15.8267, lng: -47.9218, type: 'capital', population: '3.1M', populationNum: 3100000, strategicImportance: 'low', strategicNotes: 'Regional military command, Amazon monitoring' },
+  { id: 'havana', name: 'Havana', country: 'Cuba', lat: 23.1136, lng: -82.3666, type: 'capital', population: '2.1M', populationNum: 2100000, strategicImportance: 'medium', strategicNotes: 'US proximity surveillance, port facilities' },
+  { id: 'mexico-city', name: 'Mexico City', country: 'Mexico', lat: 19.4326, lng: -99.1332, type: 'capital', population: '21.8M', populationNum: 21800000, strategicImportance: 'medium', strategicNotes: 'Border security coordination, drug cartel ops' },
+  { id: 'ottawa', name: 'Ottawa', country: 'Canada', lat: 45.4215, lng: -75.6972, type: 'capital', population: '1.0M', populationNum: 1000000, strategicImportance: 'medium', strategicNotes: 'NORAD coordination, Arctic monitoring' }
 ]
 
 interface CountryLabel {
@@ -482,26 +485,44 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         el.style.position = 'relative'
         el.style.cursor = 'pointer'
         
+        const getImportanceColor = (importance: string) => {
+          switch (importance) {
+            case 'critical': return { bg: '#ff3333', border: '#ff6666', glow: 'rgba(255, 51, 51, 0.8)' }
+            case 'high': return { bg: '#ffaa33', border: '#ffcc66', glow: 'rgba(255, 170, 51, 0.7)' }
+            case 'medium': return { bg: '#4488ff', border: '#6699ff', glow: 'rgba(68, 136, 255, 0.6)' }
+            case 'low': return { bg: '#33ff88', border: '#66ffaa', glow: 'rgba(51, 255, 136, 0.5)' }
+            default: return { bg: '#aaccff', border: '#6699ff', glow: 'rgba(102, 153, 255, 0.4)' }
+          }
+        }
+        
+        const colors = getImportanceColor(city.strategicImportance)
+        const isCritical = city.strategicImportance === 'critical'
+        const isCapital = city.type === 'capital'
+        
         const dot = document.createElement('div')
-        dot.style.width = city.type === 'capital' ? '8px' : '6px'
-        dot.style.height = city.type === 'capital' ? '8px' : '6px'
+        dot.style.width = isCritical ? '10px' : (isCapital ? '8px' : '6px')
+        dot.style.height = isCritical ? '10px' : (isCapital ? '8px' : '6px')
         dot.style.borderRadius = '50%'
-        dot.style.backgroundColor = city.type === 'capital' ? '#ffffff' : '#aaccff'
-        dot.style.border = city.type === 'capital' ? '2px solid #4488ff' : '1.5px solid #6699ff'
-        dot.style.boxShadow = city.type === 'capital' ? '0 0 10px rgba(68, 136, 255, 0.6)' : '0 0 6px rgba(102, 153, 255, 0.4)'
+        dot.style.backgroundColor = colors.bg
+        dot.style.border = `${isCritical ? '2.5px' : (isCapital ? '2px' : '1.5px')} solid ${colors.border}`
+        dot.style.boxShadow = `0 0 ${isCritical ? '15px' : '10px'} ${colors.glow}`
         dot.style.transition = 'all 0.3s ease'
-        dot.style.zIndex = '5'
+        dot.style.zIndex = isCritical ? '8' : '5'
+        
+        if (isCritical) {
+          dot.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+        }
         
         const label = document.createElement('div')
         label.textContent = city.name
         label.style.position = 'absolute'
-        label.style.top = city.type === 'capital' ? '12px' : '10px'
+        label.style.top = isCritical ? '14px' : (isCapital ? '12px' : '10px')
         label.style.left = '50%'
         label.style.transform = 'translateX(-50%)'
         label.style.whiteSpace = 'nowrap'
-        label.style.fontSize = city.type === 'capital' ? '10px' : '9px'
+        label.style.fontSize = isCritical ? '11px' : (isCapital ? '10px' : '9px')
         label.style.fontFamily = 'JetBrains Mono, monospace'
-        label.style.fontWeight = city.type === 'capital' ? '600' : '500'
+        label.style.fontWeight = isCritical ? '700' : (isCapital ? '600' : '500')
         label.style.color = '#ffffff'
         label.style.textShadow = '0 0 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6)'
         label.style.pointerEvents = 'none'
@@ -515,9 +536,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           setHoveredCity(city)
           setMousePos({ x: e.clientX, y: e.clientY })
           dot.style.transform = 'scale(1.5)'
-          dot.style.boxShadow = city.type === 'capital' 
-            ? '0 0 18px rgba(68, 136, 255, 1)' 
-            : '0 0 12px rgba(102, 153, 255, 0.8)'
+          dot.style.boxShadow = `0 0 ${isCritical ? '25px' : '18px'} ${colors.glow}`
           label.style.opacity = '1'
           label.style.fontWeight = '700'
         })
@@ -525,11 +544,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         el.addEventListener('mouseleave', () => {
           setHoveredCity(null)
           dot.style.transform = 'scale(1)'
-          dot.style.boxShadow = city.type === 'capital' 
-            ? '0 0 10px rgba(68, 136, 255, 0.6)' 
-            : '0 0 6px rgba(102, 153, 255, 0.4)'
+          dot.style.boxShadow = `0 0 ${isCritical ? '15px' : '10px'} ${colors.glow}`
           label.style.opacity = '0.85'
-          label.style.fontWeight = city.type === 'capital' ? '600' : '500'
+          label.style.fontWeight = isCritical ? '700' : (isCapital ? '600' : '500')
         })
 
         el.addEventListener('click', () => {
@@ -1133,11 +1150,11 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               className="absolute pointer-events-none z-20 bg-card/95 backdrop-blur-md border border-primary/50 rounded-lg p-3 shadow-lg"
               style={{
                 left: mousePos.x + 15,
-                top: mousePos.y - 50,
-                maxWidth: '220px'
+                top: mousePos.y - 80,
+                maxWidth: '280px'
               }}
             >
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-2 mb-2">
                 <MapPin size={16} weight="fill" className="text-primary mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-sm uppercase tracking-wide mb-0.5">
@@ -1146,9 +1163,30 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
                   <p className="text-[11px] text-muted-foreground font-mono mb-1">
                     {hoveredCity.country}
                   </p>
-                  <Badge className="text-[10px] font-mono uppercase px-1.5 py-0 bg-primary/20 text-primary border-primary/30">
-                    {hoveredCity.type === 'capital' ? 'Capital' : hoveredCity.type === 'strategic' ? 'Strategic' : 'Major City'}
-                  </Badge>
+                  <div className="flex flex-wrap gap-1">
+                    <Badge className="text-[10px] font-mono uppercase px-1.5 py-0 bg-primary/20 text-primary border-primary/30">
+                      {hoveredCity.type === 'capital' ? 'Capital' : hoveredCity.type === 'strategic' ? 'Strategic' : 'Major City'}
+                    </Badge>
+                    <Badge className={`text-[10px] font-mono uppercase px-1.5 py-0 ${
+                      hoveredCity.strategicImportance === 'critical' ? 'bg-destructive/20 text-destructive border-destructive/30' :
+                      hoveredCity.strategicImportance === 'high' ? 'bg-warning/20 text-warning border-warning/30' :
+                      hoveredCity.strategicImportance === 'medium' ? 'bg-primary/20 text-primary border-primary/30' :
+                      'bg-success/20 text-success border-success/30'
+                    }`}>
+                      {hoveredCity.strategicImportance}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground font-mono">Population:</span>
+                  <span className="font-semibold">{hoveredCity.population}</span>
+                </div>
+                <div className="pt-1 border-t border-border/50">
+                  <p className="text-[11px] text-foreground/80 leading-relaxed">
+                    {hoveredCity.strategicNotes}
+                  </p>
                 </div>
               </div>
             </motion.div>
