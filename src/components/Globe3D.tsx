@@ -257,12 +257,12 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       style: getMapStyleUrl(mapStyle),
       projection: { name: 'globe' },
       center: [20, 30],
-      zoom: 1.8,
-      pitch: is3D ? 30 : 0,
+      zoom: 2.2,
+      pitch: is3D ? 35 : 0,
       bearing: 0,
       antialias: true,
       maxZoom: 18,
-      minZoom: 1
+      minZoom: 1.5
     })
 
     mapRef.current = map
@@ -302,6 +302,39 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         
         if (!map.getLayer('sky')) {
           map.addLayer(atmosphereLayer as any)
+        }
+
+        if (mapStyle === 'dark') {
+          if (!map.getLayer('country-borders')) {
+            map.addLayer({
+              id: 'country-borders',
+              type: 'line',
+              source: {
+                type: 'vector',
+                url: 'mapbox://mapbox.country-boundaries-v1'
+              },
+              'source-layer': 'country_boundaries',
+              paint: {
+                'line-color': '#4488ff',
+                'line-width': 2,
+                'line-opacity': 0.8
+              }
+            })
+          }
+
+          if (!map.getLayer('ocean-layer')) {
+            map.addLayer({
+              id: 'ocean-layer',
+              type: 'background',
+              paint: {
+                'background-color': '#001a33'
+              }
+            }, 'country-borders')
+          }
+
+          if (!map.getLayer('land-layer') && map.getLayer('land')) {
+            map.setPaintProperty('land', 'background-color', '#0d2818')
+          }
         }
       } catch (error) {
         console.warn('Error setting up map style:', error)
@@ -626,8 +659,8 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     if (mapRef.current) {
       mapRef.current.flyTo({
         center: [20, 30],
-        zoom: 1.8,
-        pitch: is3D ? 30 : 0,
+        zoom: 2.2,
+        pitch: is3D ? 35 : 0,
         bearing: 0,
         duration: 2000
       })
@@ -652,7 +685,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       const newIs3D = !is3D
       setIs3D(newIs3D)
       mapRef.current.flyTo({
-        pitch: newIs3D ? 30 : 0,
+        pitch: newIs3D ? 35 : 0,
         duration: 1000
       })
     }
