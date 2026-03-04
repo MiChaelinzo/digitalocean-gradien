@@ -118,7 +118,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [hoveredThreat, setHoveredThreat] = useState<ThreatLocation | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [is3D, setIs3D] = useState(true)
-  const [mapStyle, setMapStyle] = useState<'dark' | 'satellite' | 'terrain'>('dark')
+  const [mapStyle, setMapStyle] = useState<'dark' | 'satellite' | 'terrain'>('satellite')
   const [weatherLayers, setWeatherLayers] = useState<Set<string>>(new Set())
   
   type WeatherLayerType = 'precipitation' | 'wind' | 'temperature' | 'clouds'
@@ -207,22 +207,24 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       container: mapContainerRef.current,
       style: getMapStyleUrl(mapStyle),
       projection: { name: 'globe' },
-      center: [30, 30],
-      zoom: 1.2,
-      pitch: is3D ? 50 : 0,
+      center: [20, 20],
+      zoom: 1.5,
+      pitch: is3D ? 45 : 0,
       bearing: 0,
-      antialias: true
+      antialias: true,
+      maxZoom: 18,
+      minZoom: 0.5
     })
 
     mapRef.current = map
 
     map.on('style.load', () => {
       map.setFog({
-        color: 'rgb(10, 15, 35)',
-        'high-color': 'rgb(36, 92, 223)',
-        'horizon-blend': 0.02,
-        'space-color': 'rgb(5, 5, 15)',
-        'star-intensity': 0.6
+        color: 'rgb(20, 30, 50)',
+        'high-color': 'rgb(50, 100, 200)',
+        'horizon-blend': 0.05,
+        'space-color': 'rgb(8, 10, 20)',
+        'star-intensity': 0.8
       })
 
       map.addSource('mapbox-dem', {
@@ -232,22 +234,43 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         maxzoom: 14
       })
 
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 })
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.8 })
+
+      const atmosphereLayer = {
+        id: 'sky',
+        type: 'sky',
+        paint: {
+          'sky-type': 'atmosphere' as const,
+          'sky-atmosphere-sun': [0.0, 90.0] as [number, number],
+          'sky-atmosphere-sun-intensity': 15
+        }
+      }
+      
+      if (!map.getLayer('sky')) {
+        map.addLayer(atmosphereLayer as any)
+      }
     })
 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: true, showZoom: true, visualizePitch: true }), 'top-right')
 
+    map.dragRotate.enable()
+    map.touchZoomRotate.enableRotation()
+    map.keyboard.enable()
+    map.scrollZoom.enable()
+
     threatLocations.forEach((threat) => {
       const el = document.createElement('div')
       el.className = 'threat-marker'
-      el.style.width = '24px'
-      el.style.height = '24px'
+      el.style.width = '28px'
+      el.style.height = '28px'
       el.style.borderRadius = '50%'
       el.style.backgroundColor = getSeverityColor(threat.severity)
-      el.style.border = '3px solid rgba(255, 255, 255, 0.3)'
+      el.style.border = '3px solid rgba(255, 255, 255, 0.4)'
       el.style.cursor = 'pointer'
-      el.style.boxShadow = `0 0 20px ${getSeverityColor(threat.severity)}`
+      el.style.boxShadow = `0 0 25px ${getSeverityColor(threat.severity)}, 0 0 10px rgba(255, 255, 255, 0.5)`
       el.style.transition = 'all 0.3s ease'
+      el.style.position = 'relative'
+      el.style.zIndex = '10'
       
       if (threat.severity === 'critical' || threat.severity === 'high') {
         el.style.animation = 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
@@ -256,14 +279,16 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       el.addEventListener('mouseenter', (e) => {
         setHoveredThreat(threat)
         setMousePos({ x: e.clientX, y: e.clientY })
-        el.style.transform = 'scale(1.3)'
-        el.style.boxShadow = `0 0 30px ${getSeverityColor(threat.severity)}`
+        el.style.transform = 'scale(1.4)'
+        el.style.boxShadow = `0 0 35px ${getSeverityColor(threat.severity)}, 0 0 15px rgba(255, 255, 255, 0.8)`
+        el.style.zIndex = '100'
       })
 
       el.addEventListener('mouseleave', () => {
         setHoveredThreat(null)
         el.style.transform = 'scale(1)'
-        el.style.boxShadow = `0 0 20px ${getSeverityColor(threat.severity)}`
+        el.style.boxShadow = `0 0 25px ${getSeverityColor(threat.severity)}, 0 0 10px rgba(255, 255, 255, 0.5)`
+        el.style.zIndex = '10'
       })
 
       el.addEventListener('click', () => {
@@ -286,13 +311,23 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       markersRef.current.push(marker)
     })
 
-    map.on('idle', () => {
-      if (is3D) {
-        map.rotateTo((map.getBearing() + 0.2) % 360, { duration: 50 })
+    let rotationAnimationFrame: number
+    const rotateGlobe = () => {
+      if (is3D && map.isMoving() === false) {
+        const currentBearing = map.getBearing()
+        map.setBearing(currentBearing + 0.15)
       }
-    })
+      rotationAnimationFrame = requestAnimationFrame(rotateGlobe)
+    }
+
+    if (is3D) {
+      rotationAnimationFrame = requestAnimationFrame(rotateGlobe)
+    }
 
     return () => {
+      if (rotationAnimationFrame) {
+        cancelAnimationFrame(rotationAnimationFrame)
+      }
       markersRef.current.forEach(marker => marker.remove())
       markersRef.current = []
       map.remove()
@@ -361,9 +396,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const handleReset = () => {
     if (mapRef.current) {
       mapRef.current.flyTo({
-        center: [30, 30],
-        zoom: 1.2,
-        pitch: is3D ? 50 : 0,
+        center: [20, 20],
+        zoom: 1.5,
+        pitch: is3D ? 45 : 0,
         bearing: 0,
         duration: 2000
       })
