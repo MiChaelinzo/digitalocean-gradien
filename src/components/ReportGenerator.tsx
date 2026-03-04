@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { FilePdf, FileDoc, X, Download, FileText, Sparkle } from '@phosphor-icons/react'
+import { queryAISimple } from '@/lib/ai-service'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 
@@ -49,7 +50,7 @@ export function ReportGenerator({ isOpen, onClose, messages }: ReportGeneratorPr
         .map(m => `${m.role === 'user' ? 'QUERY' : 'ANALYSIS'}: ${m.content}`)
         .join('\n\n')
 
-      const prompt = window.spark.llmPrompt`Analyze the following intelligence conversation and generate a concise executive summary (3-4 paragraphs) that highlights:
+      const prompt = `Analyze the following intelligence conversation and generate a concise executive summary (3-4 paragraphs) that highlights:
 1. Key threats identified
 2. Strategic recommendations
 3. Operational priorities
@@ -60,7 +61,8 @@ ${conversationText}
 
 Format the summary professionally for an intelligence report.`
 
-      const result = await window.spark.llm(prompt, 'gpt-4o-mini')
+      const { text: result, provider } = await queryAISimple(prompt)
+      console.log(`[SENTINEL] Report summary via ${provider}`)
       setSummary(result)
       toast.success('Summary generated')
     } catch (error) {
