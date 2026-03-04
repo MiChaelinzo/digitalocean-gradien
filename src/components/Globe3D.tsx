@@ -4,8 +4,14 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube } from '@phosphor-icons/react'
+import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2p0MG01MXRqMW45cjQzb2R6b2ptc3J4MSJ9.zA2W0IkI0c6KaAhJfk9bWg'
 
@@ -110,6 +116,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [hoveredThreat, setHoveredThreat] = useState<ThreatLocation | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [is3D, setIs3D] = useState(true)
+  const [mapStyle, setMapStyle] = useState<'dark' | 'satellite' | 'terrain'>('dark')
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -140,12 +147,30 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     }
   }
 
+  const getMapStyleUrl = (style: 'dark' | 'satellite' | 'terrain') => {
+    switch (style) {
+      case 'satellite': return 'mapbox://styles/mapbox/satellite-streets-v12'
+      case 'terrain': return 'mapbox://styles/mapbox/outdoors-v12'
+      case 'dark': 
+      default: return 'mapbox://styles/mapbox/dark-v11'
+    }
+  }
+
+  const getMapStyleLabel = (style: 'dark' | 'satellite' | 'terrain') => {
+    switch (style) {
+      case 'satellite': return 'Satellite'
+      case 'terrain': return 'Terrain'
+      case 'dark': 
+      default: return 'Dark'
+    }
+  }
+
   useEffect(() => {
     if (!mapContainerRef.current) return
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: getMapStyleUrl(mapStyle),
       projection: 'globe',
       center: [30, 30],
       zoom: 1.5,
@@ -227,7 +252,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       markersRef.current = []
       map.remove()
     }
-  }, [is3D, onThreatSelect])
+  }, [is3D, mapStyle, onThreatSelect])
 
   const handleReset = () => {
     if (mapRef.current) {
@@ -305,6 +330,42 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         </div>
 
         <div className="absolute top-4 right-4 z-10 flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className="bg-background/80 backdrop-blur-sm gap-2"
+                title="Change Map Style"
+              >
+                <MapTrifold size={16} weight="fill" />
+                <span className="hidden sm:inline text-xs font-mono">{getMapStyleLabel(mapStyle)}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-md">
+              <DropdownMenuItem 
+                onClick={() => setMapStyle('dark')}
+                className={mapStyle === 'dark' ? 'bg-primary/20 text-primary' : ''}
+              >
+                <GlobeIcon size={16} weight={mapStyle === 'dark' ? 'fill' : 'regular'} className="mr-2" />
+                <span className="font-mono text-xs">Dark</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setMapStyle('satellite')}
+                className={mapStyle === 'satellite' ? 'bg-primary/20 text-primary' : ''}
+              >
+                <Planet size={16} weight={mapStyle === 'satellite' ? 'fill' : 'regular'} className="mr-2" />
+                <span className="font-mono text-xs">Satellite</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setMapStyle('terrain')}
+                className={mapStyle === 'terrain' ? 'bg-primary/20 text-primary' : ''}
+              >
+                <MapTrifold size={16} weight={mapStyle === 'terrain' ? 'fill' : 'regular'} className="mr-2" />
+                <span className="font-mono text-xs">Terrain</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             size="sm"
             variant="outline"
