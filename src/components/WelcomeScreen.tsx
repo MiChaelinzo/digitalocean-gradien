@@ -49,7 +49,7 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
           Real-time threat detection, strategic analysis, and tactical recommendations.
         </p>
         
-        <div className="grid gap-3 md:gap-4 md:grid-cols-3 mb-8">
+        <div className="grid gap-4 md:gap-5 md:grid-cols-3 mb-8">
           {examples.map((example, index) => (
             <motion.div
               key={example.title}
@@ -59,15 +59,15 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
             >
               <Button
                 variant="outline"
-                className="h-auto w-full flex flex-col items-start gap-3 p-4 md:p-5 hover:border-primary hover:bg-primary/5 transition-all duration-200 text-left"
+                className="h-auto w-full flex flex-col items-start gap-3 p-5 md:p-6 hover:border-primary hover:bg-primary/5 transition-all duration-200 text-left"
                 onClick={() => onExampleClick(example.prompt)}
               >
-                <div className={`w-10 h-10 rounded-md ${example.color} flex items-center justify-center border border-current/30`}>
-                  <example.icon size={20} weight="fill" />
+                <div className={`w-12 h-12 rounded-md ${example.color} flex items-center justify-center border border-current/30`}>
+                  <example.icon size={24} weight="fill" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-xs uppercase tracking-wider mb-1.5">{example.title}</div>
-                  <div className="text-xs text-foreground leading-[1.6] font-mono line-clamp-3">
+                <div className="flex-1 w-full">
+                  <div className="font-bold text-sm uppercase tracking-wider mb-3 text-foreground">{example.title}</div>
+                  <div className="text-sm text-foreground/80 leading-[1.75] font-mono">
                     {example.prompt}
                   </div>
                 </div>
