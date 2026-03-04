@@ -2,13 +2,13 @@ import { useState, useRef, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
 import { IntelligenceBubble } from '@/components/IntelligenceBubble'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
-import { ThreatMap } from '@/components/ThreatMap'
+import { Globe3D } from '@/components/Globe3D'
 import { ThreatDashboard } from '@/components/ThreatDashboard'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { PaperPlaneRight, Plus, Shield, MapTrifold, Target, ChatCircle } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -125,8 +125,8 @@ Provide detailed military intelligence analysis with actionable recommendations.
     setActiveTab('intelligence')
   }
 
-  const handleConflictSelect = (conflict: any) => {
-    const prompt = `Provide detailed intelligence briefing on ${conflict.name}: current status, threat assessment, strategic implications, and defensive recommendations.`
+  const handleThreatSelect = (threat: any) => {
+    const prompt = `Provide detailed intelligence briefing on ${threat.name}: current status, threat assessment, strategic implications, and defensive recommendations.`
     setInput(prompt)
     setActiveTab('intelligence')
     textareaRef.current?.focus()
@@ -191,11 +191,11 @@ Provide detailed military intelligence analysis with actionable recommendations.
                   <span className="hidden sm:inline">Intelligence</span>
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="map" 
+                  value="globe" 
                   className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary font-mono text-xs uppercase px-3 md:px-4 py-2"
                 >
-                  <MapTrifold size={16} weight="fill" />
-                  <span className="hidden sm:inline">Conflict Map</span>
+                  <Globe size={16} weight="fill" />
+                  <span className="hidden sm:inline">3D Globe</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="threats" 
@@ -241,10 +241,10 @@ Provide detailed military intelligence analysis with actionable recommendations.
               </ScrollArea>
             </TabsContent>
 
-            <TabsContent value="map" className="h-full m-0">
+            <TabsContent value="globe" className="h-full m-0">
               <ScrollArea className="h-full">
                 <div className="container mx-auto px-4 md:px-6 py-6">
-                  <ThreatMap onConflictSelect={handleConflictSelect} />
+                  <Globe3D onThreatSelect={handleThreatSelect} />
                 </div>
               </ScrollArea>
             </TabsContent>

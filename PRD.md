@@ -12,9 +12,16 @@ A classified-level military intelligence and defense monitoring platform that pr
 
 ## Essential Features
 
+### Real-Time 3D Globe Visualization
+- **Functionality**: Interactive Three.js-powered 3D globe displaying active war zones, conflicts, and military operations with rotating Earth view, live threat markers, and geographic positioning for GCC-Iran tensions, Israel conflicts, Cuba situations, Ukraine, and other hotspots
+- **Purpose**: Provides immersive, intuitive spatial intelligence on global military situations for strategic planning and threat assessment with realistic geographic context
+- **Trigger**: Automatic rendering on globe tab access with continuous rotation and real-time marker updates
+- **Progression**: Globe loads and auto-rotates → User hovers over threat markers → Tooltip displays threat details → User clicks marker → Detailed intelligence fills prompt → AI analyzes current situation → Recommendations provided
+- **Success criteria**: Globe renders within 2 seconds; smooth 60fps rotation; all threat markers visible and interactive; hover tooltips appear within 100ms; click interactions populate intelligence queries immediately
+
 ### Real-Time Conflict Map Viewer
-- **Functionality**: Interactive global map displaying active war zones, conflicts, and military operations with live updates on GCC-Iran tensions, Israel conflicts, Cuba situations, Ukraine, and other hotspots
-- **Purpose**: Provides immediate visual intelligence on global military situations for strategic planning and threat assessment
+- **Functionality**: Interactive 2D global map displaying active war zones, conflicts, and military operations with live updates on GCC-Iran tensions, Israel conflicts, Cuba situations, Ukraine, and other hotspots
+- **Purpose**: Provides immediate visual intelligence on global military situations for strategic planning and threat assessment in a traditional map format
 - **Trigger**: Automatic on application load with continuous updates
 - **Progression**: Map loads with conflict zones marked → User clicks region → Detailed conflict info displays → AI analyzes current situation → Recommendations provided
 - **Success criteria**: Map updates within 2 seconds; all major conflicts visible; click interactions provide detailed intelligence within 1 second
@@ -115,7 +122,7 @@ Animations should be purposeful and minimal, reinforcing the sense of real-time 
   - `Card` for intelligence panels, threat summaries, and data containers with military-style borders
   - `Badge` for threat levels, classification labels, and status indicators
   - `Button` with distinct primary/secondary/destructive variants for actions
-  - `Tabs` for switching between Map, Threats, Intelligence, and Analysis views
+  - `Tabs` for switching between Intelligence, 3D Globe, Threats, and Analysis views
   - `ScrollArea` for intelligence feeds and threat lists
   - `Alert` for critical system notifications and warnings
   - `Table` for structured threat data and conflict timelines
@@ -124,6 +131,7 @@ Animations should be purposeful and minimal, reinforcing the sense of real-time 
   - `Dialog` for detailed threat analysis and scenario planning
 
 - **Customizations**:
+  - Custom Three.js 3D globe component with orbital controls, threat markers, and real-time updates
   - Custom map component with D3.js for conflict visualization
   - Threat card component with severity indicators and action buttons
   - Intelligence message bubble optimized for technical data
@@ -160,9 +168,9 @@ Animations should be purposeful and minimal, reinforcing the sense of real-time 
 
 - **Mobile**:
   - Priority-based layout: Alerts and critical threats always visible
-  - Bottom navigation tabs for Map/Threats/Intel/Chat
+  - Bottom navigation tabs for Intelligence/Globe/Threats/Chat
   - Collapsible threat details with swipe gestures
-  - Simplified map with list fallback option
+  - Simplified 3D globe with list fallback option; optimized rendering for mobile GPUs
   - Touch-optimized 48px minimum tap targets for alert acknowledgment
   - Horizontal scroll for wide data tables
   - Sticky threat level indicator at top
