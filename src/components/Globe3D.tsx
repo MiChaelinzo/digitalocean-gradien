@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning, Rocket } from '@phosphor-icons/react'
+import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning, Rocket, BookOpen } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
+import { TrajectoryLegend } from '@/components/TrajectoryLegend'
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
 
@@ -167,6 +168,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite' | 'terrain'>('satellite')
   const [weatherLayers, setWeatherLayers] = useState<Set<string>>(new Set())
   const [showTrajectories, setShowTrajectories] = useState(true)
+  const [showLegend, setShowLegend] = useState(false)
   
   type WeatherLayerType = 'precipitation' | 'wind' | 'temperature' | 'clouds'
 
@@ -648,6 +650,16 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           <Button
             size="sm"
             variant="outline"
+            onClick={() => setShowLegend(!showLegend)}
+            className={`bg-background/80 backdrop-blur-sm gap-2 ${showLegend ? 'border-accent text-accent' : ''}`}
+            title={showLegend ? "Hide Trajectory Legend" : "Show Trajectory Legend"}
+          >
+            <BookOpen size={16} weight={showLegend ? 'fill' : 'regular'} />
+            <span className="hidden sm:inline text-xs font-mono">Legend</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setShowTrajectories(!showTrajectories)}
             className={`bg-background/80 backdrop-blur-sm gap-2 ${showTrajectories ? 'border-accent text-accent' : ''}`}
             title={showTrajectories ? "Hide Missile Trajectories" : "Show Missile Trajectories"}
@@ -867,6 +879,17 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           </motion.div>
         ))}
       </div>
+
+      {showLegend && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 20 }}
+          transition={{ duration: 0.3 }}
+        >
+          <TrajectoryLegend />
+        </motion.div>
+      )}
     </div>
   )
 }
