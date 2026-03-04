@@ -1,144 +1,169 @@
 # Planning Guide
 
-A visual AI-powered design critique and ideation platform that helps designers and developers get instant, intelligent feedback on their UI/UX designs using DigitalOcean's Gradient AI.
+A classified-level military intelligence and defense monitoring platform that provides real-time threat detection, conflict tracking, and strategic recommendations powered by DigitalOcean's Gradient AI.
 
 **Experience Qualities**:
-1. **Insightful** - The AI provides thoughtful, actionable design feedback that feels like consulting with a senior designer
-2. **Interactive** - Real-time streaming responses create an engaging conversation with the AI about design decisions
-3. **Inspirational** - The tool sparks creativity by offering multiple perspectives and alternative approaches to design challenges
+1. **Authoritative** - The interface conveys high-stakes precision and military-grade reliability with technical depth and data-driven insights
+2. **Vigilant** - Real-time monitoring of global threats creates a constant state of situational awareness and rapid response capability
+3. **Strategic** - AI-powered analysis provides actionable intelligence and defensive recommendations for complex geopolitical scenarios
 
-**Complexity Level**: Light Application (multiple features with basic state)
-  - This app combines AI interaction, image analysis, and conversational UI with persistent chat history, making it more than a single-purpose tool but not requiring complex multi-view navigation.
+**Complexity Level**: Complex Application (advanced functionality with multiple views)
+  - This application integrates real-time conflict mapping, multi-threat detection systems, AI-powered strategic analysis, and persistent intelligence tracking requiring sophisticated state management and multiple coordinated views.
 
 ## Essential Features
 
-### AI Design Critique
-- **Functionality**: Users can paste an image URL or describe their design, and the AI analyzes it providing detailed feedback on aesthetics, usability, accessibility, and best practices
-- **Purpose**: Democratizes access to expert design feedback for developers and designers at any skill level
-- **Trigger**: User submits a design URL or description via input field
-- **Progression**: User enters URL/description → Clicks analyze → AI streams response in real-time → Feedback appears in chat-like interface → User can ask follow-up questions
-- **Success criteria**: AI provides specific, actionable feedback within 3 seconds; responses reference design principles and offer concrete suggestions
+### Real-Time Conflict Map Viewer
+- **Functionality**: Interactive global map displaying active war zones, conflicts, and military operations with live updates on GCC-Iran tensions, Israel conflicts, Cuba situations, Ukraine, and other hotspots
+- **Purpose**: Provides immediate visual intelligence on global military situations for strategic planning and threat assessment
+- **Trigger**: Automatic on application load with continuous updates
+- **Progression**: Map loads with conflict zones marked → User clicks region → Detailed conflict info displays → AI analyzes current situation → Recommendations provided
+- **Success criteria**: Map updates within 2 seconds; all major conflicts visible; click interactions provide detailed intelligence within 1 second
 
-### Design Ideation Assistant
-- **Functionality**: Users describe what they want to build and receive creative suggestions for color palettes, typography, layout approaches, and component choices
-- **Purpose**: Helps overcome creative blocks and explores design directions users might not have considered
-- **Trigger**: User describes their project goals in natural language
-- **Progression**: User describes project → AI generates multiple design direction suggestions → Each suggestion includes specific colors, fonts, and rationale → User can refine by asking follow-up questions
-- **Success criteria**: AI suggests 2-3 distinct design directions with concrete specifications; suggestions align with stated project goals
+### Aerospace Threat Detection System
+- **Functionality**: Monitors and identifies aerial threats including hypersonic missiles, drones, fighter jets, UAPs (Unidentified Aerial Phenomena), and ballistic trajectories with real-time tracking
+- **Purpose**: Early warning system for airspace violations and incoming threats to enable rapid defensive response
+- **Trigger**: Continuous monitoring with alert generation on threat detection
+- **Progression**: Threat detected → Classification analysis → Trajectory prediction → Threat level assessment → Defensive recommendations generated
+- **Success criteria**: Threat identification within 1 second; trajectory predictions accurate to 95%; clear threat level indicators
 
-### Persistent Conversation History
-- **Functionality**: All conversations with the AI are saved and accessible, allowing users to reference previous critiques and continue discussions
-- **Purpose**: Enables iterative design improvement and learning over time
-- **Trigger**: Automatic on every interaction
-- **Progression**: User interacts with AI → Message saved to history → User can scroll through previous conversations → Conversations persist across sessions
-- **Success criteria**: All messages persist correctly; history is easily scannable and searchable
+### Strategic Defense Recommendations
+- **Functionality**: AI-powered analysis of attack scenarios providing preventive measures and response protocols for specific conflicts (Iran vs Israel/USA, GCC tensions, regional conflicts)
+- **Purpose**: Transforms raw intelligence into actionable defensive strategies and countermeasure recommendations
+- **Trigger**: User queries specific conflict scenarios or system detects escalating threats
+- **Progression**: Scenario input → AI analyzes threat vectors → Generates multi-layered defense strategy → Provides resource allocation recommendations → Updates based on changing conditions
+- **Success criteria**: Recommendations delivered within 3 seconds; strategies reference military doctrine and current capabilities
 
-### Code Generation for Design Systems
-- **Functionality**: Based on design discussions, AI can generate actual CSS/Tailwind code snippets for implementing the discussed design
-- **Purpose**: Bridges the gap between design feedback and implementation
-- **Trigger**: User asks for code implementation of discussed design elements
-- **Progression**: User discusses design → Asks for code → AI generates Tailwind/CSS snippet → User can copy code → AI explains implementation choices
-- **Success criteria**: Generated code is syntactically correct and implements discussed design accurately
+### Intelligence Chat Interface
+- **Functionality**: Technical AI assistant specialized in military intelligence, threat analysis, geopolitical assessment, and defense strategy with access to conflict data
+- **Purpose**: Enables natural language queries about complex defense scenarios and provides expert-level analysis
+- **Trigger**: User submits intelligence query
+- **Progression**: User asks question → AI processes with military context → Streams detailed technical response → Provides source references → Offers follow-up analysis options
+- **Success criteria**: Responses include technical specifications, threat assessments, and strategic recommendations; maintains operational security protocols
+
+### Threat Alert Dashboard
+- **Functionality**: Centralized view of active threats, alert levels, and priority intelligence items with color-coded severity indicators
+- **Purpose**: Quick-glance situational awareness of immediate threats requiring attention
+- **Trigger**: Automatic aggregation of threat data with manual refresh option
+- **Progression**: Dashboard loads → Threats sorted by severity → User clicks alert → Detailed analysis opens → Response options presented
+- **Success criteria**: All critical threats visible without scrolling; alerts update in real-time; severity categorization accurate
 
 ## Edge Case Handling
 
-- **Invalid Image URLs**: Display friendly error message and suggest trying a different URL or describing the design instead
-- **API Failures**: Show graceful error state with retry option; preserve user's input so they don't lose their work
-- **Long Responses**: Stream AI responses in chunks so users see progress; allow scrolling during generation
-- **Empty State**: Welcome screen guides new users on what they can do with prompts and examples
-- **Rate Limiting**: If API limits are hit, inform user clearly and suggest trying again in a moment
+- **Connection Loss**: Display offline mode with last-known intelligence cached; indicate data staleness with clear timestamps
+- **Conflicting Intelligence**: Present multiple source analysis with confidence scores; allow user to request AI reconciliation
+- **Classified Information Requests**: Gracefully handle queries beyond clearance level with appropriate security notices
+- **Overwhelming Threat Volume**: Intelligent filtering and prioritization algorithms surface most critical threats first
+- **Map Rendering Failures**: Fallback to list view of conflicts with geographic coordinates
+- **API Rate Limits**: Queue non-critical updates; prioritize threat alerts and time-sensitive intelligence
 
 ## Design Direction
 
-The design should feel like a premium creative tool - sophisticated yet approachable, with a focus on clarity and visual hierarchy. It should evoke the feeling of working with a knowledgeable design partner in a modern, well-lit studio space. The interface should fade into the background, letting the AI conversation and design content take center stage.
+The design should evoke a classified military command center - dark, focused, and data-dense with a strong sense of technical authority. It must feel like professional defense software used in situation rooms, with high information density balanced by clear visual hierarchy. The interface should instill confidence through precision, using technical typography and military-inspired color coding that's instantly recognizable under high-stress conditions.
 
 ## Color Selection
 
-A refined palette inspired by design tools and creative spaces, with deep teals and warm accents that feel both professional and inviting.
+A tactical palette inspired by military command centers and defense systems, using high-contrast elements for critical information visibility in 24/7 operations environments.
 
-- **Primary Color**: Deep Teal (oklch(0.45 0.08 210)) - Conveys trust, creativity, and professionalism; reminiscent of premium design tools
+- **Primary Color**: Tactical Blue (oklch(0.35 0.12 240)) - Command center displays and primary actions; conveys authority and technical precision
 - **Secondary Colors**: 
-  - Slate backgrounds (oklch(0.96 0.005 240)) for cards and surfaces
-  - Deep charcoal (oklch(0.25 0.01 240)) for primary text
-  - Soft gray (oklch(0.55 0.01 240)) for secondary text
-- **Accent Color**: Vibrant Coral (oklch(0.68 0.18 25)) - Draws attention to CTAs and important UI moments; provides warmth against cool primary
+  - Deep Charcoal (oklch(0.15 0.01 240)) for backgrounds and surfaces
+  - Tactical Gray (oklch(0.25 0.01 240)) for elevated surfaces
+  - Cool Gray (oklch(0.45 0.01 240)) for secondary text
+- **Accent Color**: Alert Red (oklch(0.55 0.22 25)) - Critical alerts and threat indicators; immediate attention grabber
+- **Status Colors**:
+  - Threat Active Red (oklch(0.50 0.20 25)) for critical/imminent threats
+  - Warning Amber (oklch(0.65 0.15 45)) for elevated/potential threats
+  - All Clear Green (oklch(0.55 0.15 145)) for secure status
+  - Intel Blue (oklch(0.60 0.15 240)) for intelligence items
 - **Foreground/Background Pairings**:
-  - Background (Light Slate oklch(0.98 0.005 240)): Charcoal text (oklch(0.25 0.01 240)) - Ratio 12.5:1 ✓
-  - Primary (Deep Teal oklch(0.45 0.08 210)): White text (oklch(1 0 0)) - Ratio 6.8:1 ✓
-  - Accent (Coral oklch(0.68 0.18 25)): White text (oklch(1 0 0)) - Ratio 4.5:1 ✓
-  - Card (Slate oklch(0.96 0.005 240)): Charcoal text (oklch(0.25 0.01 240)) - Ratio 11.8:1 ✓
+  - Background (Deep Charcoal oklch(0.15 0.01 240)): Light Gray text (oklch(0.90 0.005 240)) - Ratio 11.2:1 ✓
+  - Primary (Tactical Blue oklch(0.35 0.12 240)): White text (oklch(1 0 0)) - Ratio 8.5:1 ✓
+  - Accent (Alert Red oklch(0.55 0.22 25)): White text (oklch(1 0 0)) - Ratio 5.2:1 ✓
+  - Card (Tactical Gray oklch(0.25 0.01 240)): Light Gray text (oklch(0.90 0.005 240)) - Ratio 7.8:1 ✓
 
 ## Font Selection
 
-Typography should balance professionalism with personality - clear and readable for long-form AI responses while feeling modern and design-forward.
+Typography must convey technical precision and military-grade reliability while maintaining excellent readability for extended monitoring sessions in potentially stressful conditions.
 
-- **Primary Font**: Space Grotesk for headings and UI elements - geometric and distinctive with a tech-forward feel
-- **Secondary Font**: Inter for body text and AI responses - exceptional readability with neutral character
+- **Primary Font**: JetBrains Mono for data displays and technical readouts - monospace provides precise alignment and military console aesthetic
+- **Secondary Font**: Space Grotesk for headings and UI elements - technical but humanist, balancing authority with usability
+- **Tertiary Font**: Inter for body text in intelligence reports - exceptional readability for long-form content
 
 **Typographic Hierarchy**:
-- H1 (App Title): Space Grotesk Bold/32px/tight letter-spacing (-0.02em)
-- H2 (Section Headers): Space Grotesk Semibold/24px/normal letter-spacing
-- H3 (Message Headers): Space Grotesk Medium/18px/normal letter-spacing
-- Body (AI Responses): Inter Regular/16px/relaxed line-height (1.7)
-- Small (Timestamps): Inter Regular/13px/normal line-height/muted color
-- Labels: Space Grotesk Medium/14px/uppercase/wide letter-spacing (0.05em)
+- H1 (System Title): Space Grotesk Bold/28px/wide letter-spacing (0.05em)/uppercase
+- H2 (Section Headers): Space Grotesk Semibold/20px/normal letter-spacing
+- H3 (Threat Labels): Space Grotesk Medium/16px/wide letter-spacing (0.02em)/uppercase
+- Body (Intelligence Reports): Inter Regular/15px/relaxed line-height (1.6)
+- Technical Data: JetBrains Mono Regular/14px/normal line-height (1.5)
+- Small Labels: JetBrains Mono Regular/12px/wide letter-spacing (0.03em)/uppercase
+- Status Indicators: Space Grotesk Bold/13px/uppercase/wide letter-spacing (0.08em)
 
 ## Animations
 
-Animations should enhance the sense of intelligent conversation and real-time thinking. Subtle motion reinforces the AI's "presence" without being distracting.
+Animations should be purposeful and minimal, reinforcing the sense of real-time data updates and system responsiveness without compromising the serious, focused atmosphere of a defense system.
 
-- **Message appearance**: Gentle fade-up with slight slide for new messages (200ms ease-out)
-- **AI thinking indicator**: Pulsing dots with staggered timing to show processing
-- **Streaming text**: Smooth character-by-character reveal as AI responds
-- **Button interactions**: Quick scale (0.98) on press for tactile feedback (150ms)
-- **Page transitions**: Smooth fade for content changes (300ms)
-- **Hover states**: Gentle color transitions (200ms) and subtle lift on cards (2px translateY)
+- **Threat alerts**: Quick pulse with red glow for critical items (300ms ease-out)
+- **Map markers**: Gentle pulsing animation for active conflict zones (2s infinite)
+- **Data updates**: Brief flash highlight when values change (150ms)
+- **Panel transitions**: Fast slide transitions for switching views (200ms ease-in-out)
+- **Loading states**: Technical scanning line animation for data retrieval
+- **Incoming intelligence**: Slide-in from top with subtle bounce for new alerts (250ms)
 
 ## Component Selection
 
 - **Components**:
-  - `Card` for message bubbles with custom padding and distinct styling for user vs AI messages
-  - `Button` for primary actions (analyze, send) with size="lg" and custom coral accent color
-  - `Input` and `Textarea` for user input with increased padding and custom focus states
-  - `ScrollArea` for message history with smooth scrolling and fade indicators
-  - `Badge` for message metadata (timestamps, message type) in muted colors
-  - `Separator` to divide conversation sections subtly
-  - `Skeleton` for loading states while AI generates responses
-  - `Alert` for error states with instructive messaging
+  - `Card` for intelligence panels, threat summaries, and data containers with military-style borders
+  - `Badge` for threat levels, classification labels, and status indicators
+  - `Button` with distinct primary/secondary/destructive variants for actions
+  - `Tabs` for switching between Map, Threats, Intelligence, and Analysis views
+  - `ScrollArea` for intelligence feeds and threat lists
+  - `Alert` for critical system notifications and warnings
+  - `Table` for structured threat data and conflict timelines
+  - `Separator` for dividing functional zones in the interface
+  - `Progress` for threat proximity and missile trajectory indicators
+  - `Dialog` for detailed threat analysis and scenario planning
 
 - **Customizations**:
-  - Custom message bubble component with user/AI variants
-  - Code block component with syntax highlighting and copy button
-  - Welcome screen component with example prompts
-  - Floating action button for "New Conversation"
+  - Custom map component with D3.js for conflict visualization
+  - Threat card component with severity indicators and action buttons
+  - Intelligence message bubble optimized for technical data
+  - Status dashboard with real-time updating metrics
+  - Radar-style threat proximity visualization
+  - Timeline component for conflict progression tracking
 
 - **States**:
-  - Buttons: Default (coral accent), hover (slightly lighter), active (pressed scale), disabled (muted with reduced opacity)
-  - Inputs: Default (subtle border), focus (primary color ring with glow), filled (slightly elevated background), error (destructive color ring)
-  - Messages: Sending (reduced opacity), delivered (full opacity), error state (with retry option)
+  - Buttons: Default (tactical blue), hover (brighter glow), active (pressed inset), disabled (low opacity gray), alert state (pulsing red)
+  - Threat cards: Normal, elevated (orange border), critical (red border + glow), resolved (green checkmark)
+  - Map markers: Active conflict (pulsing red), tension zone (amber), stable (green), unknown (gray)
+  - Intelligence items: Unread (bold + blue indicator), read (normal), priority (red flag icon)
 
 - **Icon Selection**:
-  - `PaperPlaneRight` for send actions
-  - `Sparkle` for AI indicator and branding
-  - `Image` for image analysis
-  - `Palette` for design ideation
-  - `Code` for code generation
-  - `ArrowClockwise` for retry actions
-  - `Plus` for new conversation
-  - `Copy` for copying code snippets
+  - `Crosshair` for threat targeting
+  - `MapPin` for conflict locations
+  - `Airplane` for aircraft threats
+  - `Rocket` for missile systems
+  - `Shield` for defense systems
+  - `Warning` for alerts
+  - `Pulse` for live monitoring
+  - `Target` for tracking systems
+  - `Globe` for global view
+  - `Lightning` for rapid response
+  - `Eye` for surveillance
+  - `Broadcast` for communications
 
 - **Spacing**:
-  - Container padding: `p-6` (24px) on desktop, `p-4` (16px) on mobile
-  - Message gaps: `gap-4` (16px) between messages
-  - Input area padding: `p-4` (16px) internal padding
-  - Card padding: `p-6` (24px) for message content
-  - Section gaps: `gap-8` (32px) between major sections
+  - Container padding: `p-4` (16px) for dense information display
+  - Threat card gaps: `gap-3` (12px) for compact lists
+  - Dashboard grid: `gap-4` (16px) between metric cards
+  - Panel padding: `p-6` (24px) for main content areas
+  - Tight spacing for data tables: `gap-2` (8px)
 
 - **Mobile**:
-  - Single column layout on mobile
-  - Fixed input area at bottom with safe area insets
-  - Collapsed header with hamburger menu for conversation history
-  - Reduced font sizes: H1 to 24px, body to 15px
-  - Touch-friendly button sizes (minimum 44px tap targets)
-  - Full-width cards with reduced side padding
-  - Sticky header with app title and new conversation button
+  - Priority-based layout: Alerts and critical threats always visible
+  - Bottom navigation tabs for Map/Threats/Intel/Chat
+  - Collapsible threat details with swipe gestures
+  - Simplified map with list fallback option
+  - Touch-optimized 48px minimum tap targets for alert acknowledgment
+  - Horizontal scroll for wide data tables
+  - Sticky threat level indicator at top
+  - Reduced font sizes: H1 to 20px, body to 14px, technical data to 12px

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Sparkle, Image as ImageIcon, Palette, Code } from '@phosphor-icons/react'
+import { Shield, Target, Rocket, Globe } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 
 interface WelcomeScreenProps {
@@ -8,22 +8,22 @@ interface WelcomeScreenProps {
 
 const examples = [
   {
-    icon: ImageIcon,
-    title: 'Design Critique',
-    prompt: 'Analyze this design and provide feedback on color contrast, typography hierarchy, and overall visual balance.',
-    color: 'bg-blue-500/10 text-blue-600'
+    icon: Target,
+    title: 'Threat Analysis',
+    prompt: 'Analyze current hypersonic missile threats in the Middle East theater and recommend defensive countermeasures.',
+    color: 'bg-destructive/20 text-destructive'
   },
   {
-    icon: Palette,
-    title: 'Design Ideation',
-    prompt: 'Help me design a modern fitness tracking app. I want it to feel energetic and motivational.',
-    color: 'bg-purple-500/10 text-purple-600'
+    icon: Globe,
+    title: 'Conflict Assessment',
+    prompt: 'Provide strategic intelligence on GCC-Iran tensions including naval positioning and escalation probability.',
+    color: 'bg-warning/20 text-warning'
   },
   {
-    icon: Code,
-    title: 'Code Generation',
-    prompt: 'Generate Tailwind CSS code for a glassmorphism card component with a subtle gradient background.',
-    color: 'bg-green-500/10 text-green-600'
+    icon: Rocket,
+    title: 'Defense Strategy',
+    prompt: 'Outline defensive protocols for ballistic missile attack scenario targeting Israel with response timeline.',
+    color: 'bg-primary/20 text-primary'
   }
 ]
 
@@ -34,22 +34,22 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="text-center max-w-2xl"
+        className="text-center max-w-3xl"
       >
-        <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-br from-primary to-accent mb-6">
-          <Sparkle size={32} weight="fill" className="text-white md:w-10 md:h-10" />
+        <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-md bg-primary/20 border-2 border-primary mb-6">
+          <Shield size={32} weight="fill" className="text-primary md:w-10 md:h-10" />
         </div>
         
-        <h1 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
-          Gradient AI Design Studio
+        <h1 className="text-2xl md:text-3xl font-bold mb-3 tracking-wide uppercase">
+          SENTINEL Intelligence Platform
         </h1>
         
-        <p className="text-base md:text-lg text-muted-foreground mb-12 leading-relaxed">
-          Get instant, intelligent feedback on your UI/UX designs powered by DigitalOcean's Gradient AI.
-          Receive expert critiques, explore creative directions, and generate production-ready code.
+        <p className="text-sm md:text-base text-muted-foreground mb-10 leading-relaxed font-mono">
+          Advanced military intelligence and defense monitoring powered by DigitalOcean Gradient™ AI.
+          Real-time threat detection, strategic analysis, and tactical recommendations.
         </p>
         
-        <div className="grid gap-4 md:gap-6 md:grid-cols-3 mb-8">
+        <div className="grid gap-3 md:gap-4 md:grid-cols-3 mb-8">
           {examples.map((example, index) => (
             <motion.div
               key={example.title}
@@ -59,16 +59,16 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
             >
               <Button
                 variant="outline"
-                className="h-auto w-full flex flex-col items-start gap-3 p-4 md:p-6 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
+                className="h-auto w-full flex flex-col items-start gap-3 p-4 md:p-5 hover:border-primary hover:bg-primary/5 transition-all duration-200 text-left"
                 onClick={() => onExampleClick(example.prompt)}
               >
-                <div className={`w-10 h-10 rounded-lg ${example.color} flex items-center justify-center`}>
-                  <example.icon size={20} weight="bold" />
+                <div className={`w-10 h-10 rounded-md ${example.color} flex items-center justify-center border border-current/30`}>
+                  <example.icon size={20} weight="fill" />
                 </div>
-                <div className="text-left">
-                  <div className="font-semibold text-sm mb-1">{example.title}</div>
-                  <div className="text-xs text-muted-foreground leading-relaxed">
-                    {example.prompt.substring(0, 60)}...
+                <div>
+                  <div className="font-semibold text-xs uppercase tracking-wider mb-1.5">{example.title}</div>
+                  <div className="text-xs text-muted-foreground leading-relaxed font-mono">
+                    {example.prompt.substring(0, 70)}...
                   </div>
                 </div>
               </Button>
@@ -76,8 +76,8 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
           ))}
         </div>
         
-        <p className="text-sm text-muted-foreground">
-          Or start typing your own message below
+        <p className="text-xs text-muted-foreground font-mono uppercase tracking-wide">
+          CLASSIFIED // QUERY INTELLIGENCE SYSTEM BELOW
         </p>
       </motion.div>
     </div>
