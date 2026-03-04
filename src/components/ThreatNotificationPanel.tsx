@@ -41,7 +41,7 @@ interface ThreatNotificationPanelProps {
 export function ThreatNotificationPanel({ isOpen, onClose }: ThreatNotificationPanelProps) {
   const [notifications, setNotifications] = useKV<ThreatNotification[]>('threat-notifications', [])
   const [soundEnabled, setSoundEnabled] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'critical' | 'unacknowledged'>('all')
+  const [filter, setFilter] = useState<'all' | 'critical' | 'high' | 'medium' | 'low' | 'unacknowledged'>('all')
 
   const getThreatIcon = (type: string) => {
     switch (type) {
@@ -87,6 +87,12 @@ export function ThreatNotificationPanel({ isOpen, onClose }: ThreatNotificationP
     
     if (filter === 'critical') {
       filtered = filtered.filter(n => n.severity === 'critical')
+    } else if (filter === 'high') {
+      filtered = filtered.filter(n => n.severity === 'high')
+    } else if (filter === 'medium') {
+      filtered = filtered.filter(n => n.severity === 'medium')
+    } else if (filter === 'low') {
+      filtered = filtered.filter(n => n.severity === 'low')
     } else if (filter === 'unacknowledged') {
       filtered = filtered.filter(n => !n.acknowledged)
     }
@@ -101,6 +107,9 @@ export function ThreatNotificationPanel({ isOpen, onClose }: ThreatNotificationP
 
   const filteredNotifications = getFilteredNotifications()
   const criticalCount = (notifications || []).filter(n => !n.dismissed && n.severity === 'critical').length
+  const highCount = (notifications || []).filter(n => !n.dismissed && n.severity === 'high').length
+  const mediumCount = (notifications || []).filter(n => !n.dismissed && n.severity === 'medium').length
+  const lowCount = (notifications || []).filter(n => !n.dismissed && n.severity === 'low').length
   const unacknowledgedCount = (notifications || []).filter(n => !n.dismissed && !n.acknowledged).length
 
   if (!isOpen) return null
@@ -166,43 +175,82 @@ export function ThreatNotificationPanel({ isOpen, onClose }: ThreatNotificationP
           </div>
 
           <div className="p-4 border-b border-border bg-secondary/30">
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={filter === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('all')}
-                className="text-xs font-mono"
-              >
-                All ({(notifications || []).filter(n => !n.dismissed).length})
-              </Button>
-              <Button
-                variant={filter === 'critical' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('critical')}
-                className="text-xs font-mono"
-              >
-                Critical ({criticalCount})
-              </Button>
-              <Button
-                variant={filter === 'unacknowledged' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter('unacknowledged')}
-                className="text-xs font-mono"
-              >
-                Unacknowledged ({unacknowledgedCount})
-              </Button>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground uppercase">
+                <Target size={14} weight="fill" />
+                <span>Filter by Severity</span>
+              </div>
               
-              <div className="flex-1" />
+              <div className="flex flex-wrap gap-2">
+                <Badge
+                  variant={filter === 'all' ? 'default' : 'outline'}
+                  onClick={() => setFilter('all')}
+                  className="cursor-pointer text-xs font-mono uppercase px-3 py-1.5 transition-all hover:scale-105 select-none"
+                >
+                  All ({(notifications || []).filter(n => !n.dismissed).length})
+                </Badge>
+                
+                <Badge
+                  variant={filter === 'critical' ? 'default' : 'outline'}
+                  onClick={() => setFilter('critical')}
+                  className={`cursor-pointer text-xs font-mono uppercase px-3 py-1.5 transition-all hover:scale-105 select-none ${
+                    filter !== 'critical' ? 'border-destructive text-destructive hover:bg-destructive/10' : 'bg-destructive border-destructive'
+                  }`}
+                >
+                  Critical ({criticalCount})
+                </Badge>
+                
+                <Badge
+                  variant={filter === 'high' ? 'default' : 'outline'}
+                  onClick={() => setFilter('high')}
+                  className={`cursor-pointer text-xs font-mono uppercase px-3 py-1.5 transition-all hover:scale-105 select-none ${
+                    filter !== 'high' ? 'border-warning text-warning hover:bg-warning/10' : 'bg-warning border-warning'
+                  }`}
+                >
+                  High ({highCount})
+                </Badge>
+                
+                <Badge
+                  variant={filter === 'medium' ? 'default' : 'outline'}
+                  onClick={() => setFilter('medium')}
+                  className={`cursor-pointer text-xs font-mono uppercase px-3 py-1.5 transition-all hover:scale-105 select-none ${
+                    filter !== 'medium' ? 'border-primary text-primary hover:bg-primary/10' : 'bg-primary border-primary'
+                  }`}
+                >
+                  Medium ({mediumCount})
+                </Badge>
+                
+                <Badge
+                  variant={filter === 'low' ? 'default' : 'outline'}
+                  onClick={() => setFilter('low')}
+                  className={`cursor-pointer text-xs font-mono uppercase px-3 py-1.5 transition-all hover:scale-105 select-none ${
+                    filter !== 'low' ? 'border-success text-success hover:bg-success/10' : 'bg-success border-success'
+                  }`}
+                >
+                  Low ({lowCount})
+                </Badge>
+                
+                <Badge
+                  variant={filter === 'unacknowledged' ? 'default' : 'outline'}
+                  onClick={() => setFilter('unacknowledged')}
+                  className="cursor-pointer text-xs font-mono uppercase px-3 py-1.5 transition-all hover:scale-105 select-none border-accent text-accent hover:bg-accent/10"
+                >
+                  <Bell size={12} weight="fill" className="mr-1" />
+                  Unack ({unacknowledgedCount})
+                </Badge>
+              </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllAcknowledged}
-                className="text-xs font-mono"
-                disabled={(notifications || []).filter(n => n.acknowledged && !n.dismissed).length === 0}
-              >
-                Clear Acknowledged
-              </Button>
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearAllAcknowledged}
+                  className="text-xs font-mono h-8"
+                  disabled={(notifications || []).filter(n => n.acknowledged && !n.dismissed).length === 0}
+                >
+                  Clear Acknowledged
+                </Button>
+              </div>
             </div>
           </div>
 
