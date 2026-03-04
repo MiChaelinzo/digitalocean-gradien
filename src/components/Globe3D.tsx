@@ -228,17 +228,17 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     
     coordinates.forEach((coord: number[]) => {
       const [lng, lat] = coord
-      const vector = latLngToVector3(lat, lng, 2.005)
+      const vector = latLngToVector3(lat, lng, 2.013)
       points.push(vector)
     })
     
     if (points.length > 1) {
       const geometry = new THREE.BufferGeometry().setFromPoints(points)
       const material = new THREE.LineBasicMaterial({
-        color: 0x4488ff,
+        color: 0x88bbff,
         transparent: true,
-        opacity: 0.35,
-        linewidth: 1
+        opacity: 0.5,
+        linewidth: 1.5
       })
       const line = new THREE.Line(geometry, material)
       group.add(line)
@@ -419,64 +419,49 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     
     coordinates.forEach((coord: number[]) => {
       const [lng, lat] = coord
-      const vector = latLngToVector3(lat, lng, 2.01)
+      const vector = latLngToVector3(lat, lng, 2.012)
       points.push(vector)
     })
     
     if (points.length > 2) {
-      const shape = new THREE.Shape()
-      
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-      
-      canvas.width = 512
-      canvas.height = 512
-      
-      const projected: Array<{x: number, y: number}> = []
-      points.forEach((point) => {
-        const x = (Math.atan2(point.x, point.z) / Math.PI + 1) * 0.5
-        const y = (Math.asin(point.y / 2.01) / Math.PI + 0.5)
-        projected.push({ x, y })
-      })
-      
-      if (projected.length > 0) {
-        ctx.fillStyle = '#1a4d2e'
-        ctx.beginPath()
-        ctx.moveTo(projected[0].x * 512, projected[0].y * 512)
-        for (let i = 1; i < projected.length; i++) {
-          ctx.lineTo(projected[i].x * 512, projected[i].y * 512)
-        }
-        ctx.closePath()
-        ctx.fill()
-      }
-      
       const geometry = new THREE.BufferGeometry().setFromPoints(points)
       const material = new THREE.LineBasicMaterial({
-        color: 0x2d6b3e,
+        color: 0x4d8f3e,
         transparent: true,
-        opacity: 0.6,
-        linewidth: 1.5
+        opacity: 0.8,
+        linewidth: 2
       })
       const line = new THREE.LineLoop(geometry, material)
       group.add(line)
       
       const fillGeometry = new THREE.BufferGeometry()
       const vertices: number[] = []
+      const colors: number[] = []
+      
       for (let i = 0; i < points.length - 2; i++) {
         vertices.push(points[0].x, points[0].y, points[0].z)
         vertices.push(points[i + 1].x, points[i + 1].y, points[i + 1].z)
         vertices.push(points[i + 2].x, points[i + 2].y, points[i + 2].z)
+        
+        const brightness = 0.3 + Math.random() * 0.2
+        for (let j = 0; j < 3; j++) {
+          colors.push(brightness * 0.2, brightness * 0.6, brightness * 0.3)
+        }
       }
+      
       fillGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+      fillGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+      fillGeometry.computeVertexNormals()
       
       const fillMaterial = new THREE.MeshPhongMaterial({
-        color: 0x1a4d2e,
-        emissive: 0x0a1f0f,
+        vertexColors: true,
+        emissive: new THREE.Color(0x1a3d1f),
+        emissiveIntensity: 0.3,
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.85,
-        flatShading: false
+        opacity: 0.95,
+        flatShading: false,
+        shininess: 5
       })
       const fillMesh = new THREE.Mesh(fillGeometry, fillMaterial)
       group.add(fillMesh)
@@ -518,31 +503,208 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     containerRef.current.appendChild(renderer.domElement)
     rendererRef.current = renderer
 
-    const ambientLight = new THREE.AmbientLight(0x404040, 2)
+    const ambientLight = new THREE.AmbientLight(0x404060, 1.5)
     scene.add(ambientLight)
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5)
-    directionalLight.position.set(5, 3, 5)
-    scene.add(directionalLight)
+    const sunLight = new THREE.DirectionalLight(0xffffee, 2.5)
+    sunLight.position.set(5, 2, 5)
+    scene.add(sunLight)
 
-    const pointLight = new THREE.PointLight(0x4488ff, 1, 100)
-    pointLight.position.set(-5, 0, 3)
-    scene.add(pointLight)
+    const fillLight = new THREE.DirectionalLight(0x4488ff, 0.8)
+    fillLight.position.set(-5, 1, -3)
+    scene.add(fillLight)
 
-    const sphereGeometry = new THREE.SphereGeometry(2, 64, 64)
+    const backLight = new THREE.PointLight(0x6699ff, 1.2, 100)
+    backLight.position.set(-5, 0, -5)
+    scene.add(backLight)
     
-    const oceanMaterial = new THREE.MeshPhongMaterial({
-      color: 0x0a1f3d,
-      emissive: 0x050a15,
-      specular: 0x1144aa,
-      shininess: 30,
-      transparent: true,
-      opacity: 0.98
+    const rimLight = new THREE.PointLight(0x88bbff, 0.8, 100)
+    rimLight.position.set(0, 5, -5)
+    scene.add(rimLight)
+
+    const sphereGeometry = new THREE.SphereGeometry(2, 128, 128)
+    
+    const textureLoader = new THREE.TextureLoader()
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    
+    canvas.width = 4096
+    canvas.height = 2048
+    
+    if (ctx) {
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
+      gradient.addColorStop(0, '#1a3d5c')
+      gradient.addColorStop(0.5, '#0d2a47')
+      gradient.addColorStop(1, '#1a3d5c')
+      ctx.fillStyle = gradient
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      
+      ctx.globalAlpha = 0.15
+      for (let i = 0; i < 8000; i++) {
+        const x = Math.random() * canvas.width
+        const y = Math.random() * canvas.height
+        const size = Math.random() * 2
+        ctx.fillStyle = '#ffffff'
+        ctx.fillRect(x, y, size, size)
+      }
+      ctx.globalAlpha = 1.0
+      
+      ctx.strokeStyle = 'rgba(100, 150, 255, 0.15)'
+      ctx.lineWidth = 1
+      for (let lat = -80; lat <= 80; lat += 20) {
+        const y = ((90 - lat) / 180) * canvas.height
+        ctx.beginPath()
+        ctx.moveTo(0, y)
+        ctx.lineTo(canvas.width, y)
+        ctx.stroke()
+      }
+      
+      for (let lng = -180; lng <= 180; lng += 20) {
+        const x = ((lng + 180) / 360) * canvas.width
+        ctx.beginPath()
+        ctx.moveTo(x, 0)
+        ctx.lineTo(x, canvas.height)
+        ctx.stroke()
+      }
+    }
+    
+    const earthTexture = new THREE.CanvasTexture(canvas)
+    earthTexture.needsUpdate = true
+    
+    const bumpCanvas = document.createElement('canvas')
+    const bumpCtx = bumpCanvas.getContext('2d')
+    bumpCanvas.width = 2048
+    bumpCanvas.height = 1024
+    
+    if (bumpCtx) {
+      bumpCtx.fillStyle = '#808080'
+      bumpCtx.fillRect(0, 0, bumpCanvas.width, bumpCanvas.height)
+      
+      for (let i = 0; i < 5000; i++) {
+        const x = Math.random() * bumpCanvas.width
+        const y = Math.random() * bumpCanvas.height
+        const radius = Math.random() * 15 + 5
+        const brightness = Math.floor(Math.random() * 100 + 100)
+        
+        const gradient = bumpCtx.createRadialGradient(x, y, 0, x, y, radius)
+        gradient.addColorStop(0, `rgb(${brightness}, ${brightness}, ${brightness})`)
+        gradient.addColorStop(1, 'rgba(128, 128, 128, 0)')
+        
+        bumpCtx.fillStyle = gradient
+        bumpCtx.fillRect(x - radius, y - radius, radius * 2, radius * 2)
+      }
+    }
+    
+    const bumpTexture = new THREE.CanvasTexture(bumpCanvas)
+    bumpTexture.needsUpdate = true
+    
+    const specularCanvas = document.createElement('canvas')
+    const specularCtx = specularCanvas.getContext('2d')
+    specularCanvas.width = 2048
+    specularCanvas.height = 1024
+    
+    if (specularCtx) {
+      const gradient = specularCtx.createLinearGradient(0, 0, 0, specularCanvas.height)
+      gradient.addColorStop(0, '#1a4d8f')
+      gradient.addColorStop(0.5, '#0d3366')
+      gradient.addColorStop(1, '#1a4d8f')
+      specularCtx.fillStyle = gradient
+      specularCtx.fillRect(0, 0, specularCanvas.width, specularCanvas.height)
+      
+      specularCtx.globalAlpha = 0.3
+      for (let i = 0; i < 3000; i++) {
+        const x = Math.random() * specularCanvas.width
+        const y = Math.random() * specularCanvas.height
+        const radius = Math.random() * 20 + 10
+        
+        const shimmer = specularCtx.createRadialGradient(x, y, 0, x, y, radius)
+        shimmer.addColorStop(0, '#ffffff')
+        shimmer.addColorStop(1, 'rgba(255, 255, 255, 0)')
+        
+        specularCtx.fillStyle = shimmer
+        specularCtx.fillRect(x - radius, y - radius, radius * 2, radius * 2)
+      }
+    }
+    
+    const specularTexture = new THREE.CanvasTexture(specularCanvas)
+    specularTexture.needsUpdate = true
+    
+    const earthMaterial = new THREE.MeshPhongMaterial({
+      map: earthTexture,
+      bumpMap: bumpTexture,
+      bumpScale: 0.02,
+      specularMap: specularTexture,
+      specular: new THREE.Color(0x4488ff),
+      shininess: 25,
+      emissive: new THREE.Color(0x0a1520),
+      emissiveIntensity: 0.2
     })
     
-    const globe = new THREE.Mesh(sphereGeometry, oceanMaterial)
+    const globe = new THREE.Mesh(sphereGeometry, earthMaterial)
     scene.add(globe)
     globeRef.current = globe
+    
+    const atmosphereGeometry = new THREE.SphereGeometry(2.08, 64, 64)
+    const atmosphereMaterial = new THREE.ShaderMaterial({
+      transparent: true,
+      side: THREE.BackSide,
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow(0.6 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 2.0);
+          gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0) * intensity;
+        }
+      `
+    })
+    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial)
+    globe.add(atmosphere)
+    
+    const cloudCanvas = document.createElement('canvas')
+    const cloudCtx = cloudCanvas.getContext('2d')
+    cloudCanvas.width = 2048
+    cloudCanvas.height = 1024
+    
+    if (cloudCtx) {
+      cloudCtx.fillStyle = 'rgba(0, 0, 0, 0)'
+      cloudCtx.fillRect(0, 0, cloudCanvas.width, cloudCanvas.height)
+      
+      for (let i = 0; i < 2000; i++) {
+        const x = Math.random() * cloudCanvas.width
+        const y = Math.random() * cloudCanvas.height
+        const radius = Math.random() * 40 + 20
+        const opacity = Math.random() * 0.3 + 0.1
+        
+        const gradient = cloudCtx.createRadialGradient(x, y, 0, x, y, radius)
+        gradient.addColorStop(0, `rgba(255, 255, 255, ${opacity})`)
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
+        
+        cloudCtx.fillStyle = gradient
+        cloudCtx.fillRect(x - radius, y - radius, radius * 2, radius * 2)
+      }
+    }
+    
+    const cloudTexture = new THREE.CanvasTexture(cloudCanvas)
+    cloudTexture.needsUpdate = true
+    
+    const cloudGeometry = new THREE.SphereGeometry(2.02, 64, 64)
+    const cloudMaterial = new THREE.MeshPhongMaterial({
+      map: cloudTexture,
+      transparent: true,
+      opacity: 0.4,
+      depthWrite: false,
+      side: THREE.FrontSide
+    })
+    const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial)
+    globe.add(clouds)
+    
+    globe.userData.clouds = clouds
 
     addLatitudeLongitudeGrid(globe)
 
@@ -789,6 +951,11 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         rotationRef.current.y += 0.001
         globe.rotation.y = rotationRef.current.y
         globe.rotation.x = rotationRef.current.x
+        
+        if (globe.userData.clouds) {
+          globe.userData.clouds.rotation.y = rotationRef.current.y * 1.02
+        }
+        
         if (markersGroup) {
           markersGroup.rotation.y = rotationRef.current.y
           markersGroup.rotation.x = rotationRef.current.x
