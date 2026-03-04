@@ -207,24 +207,24 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       container: mapContainerRef.current,
       style: getMapStyleUrl(mapStyle),
       projection: { name: 'globe' },
-      center: [20, 20],
-      zoom: 1.5,
-      pitch: is3D ? 45 : 0,
+      center: [20, 30],
+      zoom: 1.8,
+      pitch: is3D ? 30 : 0,
       bearing: 0,
       antialias: true,
       maxZoom: 18,
-      minZoom: 0.5
+      minZoom: 1
     })
 
     mapRef.current = map
 
     map.on('style.load', () => {
       map.setFog({
-        color: 'rgb(20, 30, 50)',
-        'high-color': 'rgb(50, 100, 200)',
-        'horizon-blend': 0.05,
-        'space-color': 'rgb(8, 10, 20)',
-        'star-intensity': 0.8
+        color: 'rgb(186, 210, 235)',
+        'high-color': 'rgb(36, 92, 223)',
+        'horizon-blend': 0.02,
+        'space-color': 'rgb(11, 11, 25)',
+        'star-intensity': 0.6
       })
 
       map.addSource('mapbox-dem', {
@@ -234,15 +234,15 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         maxzoom: 14
       })
 
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.8 })
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 })
 
       const atmosphereLayer = {
         id: 'sky',
         type: 'sky',
         paint: {
           'sky-type': 'atmosphere' as const,
-          'sky-atmosphere-sun': [0.0, 90.0] as [number, number],
-          'sky-atmosphere-sun-intensity': 15
+          'sky-atmosphere-sun': [0.0, 0.0] as [number, number],
+          'sky-atmosphere-sun-intensity': 5
         }
       }
       
@@ -315,7 +315,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     const rotateGlobe = () => {
       if (is3D && map.isMoving() === false) {
         const currentBearing = map.getBearing()
-        map.setBearing(currentBearing + 0.15)
+        map.setBearing(currentBearing + 0.08)
       }
       rotationAnimationFrame = requestAnimationFrame(rotateGlobe)
     }
@@ -396,9 +396,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const handleReset = () => {
     if (mapRef.current) {
       mapRef.current.flyTo({
-        center: [20, 20],
-        zoom: 1.5,
-        pitch: is3D ? 45 : 0,
+        center: [20, 30],
+        zoom: 1.8,
+        pitch: is3D ? 30 : 0,
         bearing: 0,
         duration: 2000
       })
@@ -423,7 +423,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       const newIs3D = !is3D
       setIs3D(newIs3D)
       mapRef.current.flyTo({
-        pitch: newIs3D ? 50 : 0,
+        pitch: newIs3D ? 30 : 0,
         duration: 1000
       })
     }
