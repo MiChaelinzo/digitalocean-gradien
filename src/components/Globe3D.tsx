@@ -268,35 +268,43 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     mapRef.current = map
 
     map.on('style.load', () => {
-      map.setFog({
-        color: 'rgb(186, 210, 235)',
-        'high-color': 'rgb(36, 92, 223)',
-        'horizon-blend': 0.02,
-        'space-color': 'rgb(11, 11, 25)',
-        'star-intensity': 0.6
-      })
+      if (!map || !mapRef.current) return
 
-      map.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14
-      })
+      try {
+        map.setFog({
+          color: 'rgb(186, 210, 235)',
+          'high-color': 'rgb(36, 92, 223)',
+          'horizon-blend': 0.02,
+          'space-color': 'rgb(11, 11, 25)',
+          'star-intensity': 0.6
+        })
 
-      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 })
-
-      const atmosphereLayer = {
-        id: 'sky',
-        type: 'sky',
-        paint: {
-          'sky-type': 'atmosphere' as const,
-          'sky-atmosphere-sun': [0.0, 0.0] as [number, number],
-          'sky-atmosphere-sun-intensity': 5
+        if (!map.getSource('mapbox-dem')) {
+          map.addSource('mapbox-dem', {
+            type: 'raster-dem',
+            url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+            tileSize: 512,
+            maxzoom: 14
+          })
         }
-      }
-      
-      if (!map.getLayer('sky')) {
-        map.addLayer(atmosphereLayer as any)
+
+        map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 })
+
+        const atmosphereLayer = {
+          id: 'sky',
+          type: 'sky',
+          paint: {
+            'sky-type': 'atmosphere' as const,
+            'sky-atmosphere-sun': [0.0, 0.0] as [number, number],
+            'sky-atmosphere-sun-intensity': 5
+          }
+        }
+        
+        if (!map.getLayer('sky')) {
+          map.addLayer(atmosphereLayer as any)
+        }
+      } catch (error) {
+        console.warn('Error setting up map style:', error)
       }
     })
 
@@ -380,11 +388,13 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       return path
     }
 
+    const animationFrames: number[] = []
+
     const addTrajectories = () => {
-      if (!map.isStyleLoaded()) return
+      if (!map || !map.isStyleLoaded()) return
       
       if (showTrajectories) {
-        missileTrajectories.forEach((trajectory, index) => {
+        missileTrajectories.forEach((trajectory) => {
           const sourceId = `trajectory-${trajectory.id}`
           const lineLayerId = `trajectory-line-${trajectory.id}`
           const particleLayerId = `trajectory-particle-${trajectory.id}`
@@ -413,67 +423,83 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
                 trajectory.severity === 'critical' ? '#ff3333' :
                 trajectory.severity === 'high' ? '#ffaa33' : '#4488ff'
 
-              map.addLayer({
-                id: lineLayerId,
-                type: 'line',
-                source: sourceId,
-                layout: {
-                  'line-join': 'round',
-                  'line-cap': 'round'
-                },
-                paint: {
-                  'line-color': trajectoryColor,
-                  'line-width': 2,
-                  'line-opacity': 0.6,
-                  'line-dasharray': [2, 2]
-                }
-              })
-
-              map.addSource(`${sourceId}-particle`, {
-                type: 'geojson',
-                data: {
-                  type: 'Feature',
-                  properties: {},
-                  geometry: {
-                    type: 'Point',
-                    coordinates: path[0]
+              if (!map.getLayer(lineLayerId)) {
+                map.addLayer({
+                  id: lineLayerId,
+                  type: 'line',
+                  source: sourceId,
+                  layout: {
+                    'line-join': 'round',
+                    'line-cap': 'round'
+                  },
+                  paint: {
+                    'line-color': trajectoryColor,
+                    'line-width': 2,
+                    'line-opacity': 0.6,
+                    'line-dasharray': [2, 2]
                   }
-                }
-              })
+                })
+              }
 
-              map.addLayer({
-                id: particleLayerId,
-                type: 'circle',
-                source: `${sourceId}-particle`,
-                paint: {
-                  'circle-radius': 5,
-                  'circle-color': trajectoryColor,
-                  'circle-blur': 0.3,
-                  'circle-opacity': 0.9
-                }
-              })
-
-              let particleIndex = 0
-              const speed = trajectory.type === 'hypersonic' ? 3 : trajectory.type === 'ballistic' ? 2 : 1
-              
-              const animateParticle = () => {
-                const particleSource = map.getSource(`${sourceId}-particle`)
-                if (!particleSource) return
-                
-                particleIndex = (particleIndex + speed) % path.length
-                
-                if (particleSource && (particleSource as mapboxgl.GeoJSONSource).setData) {
-                  (particleSource as mapboxgl.GeoJSONSource).setData({
+              const particleSourceId = `${sourceId}-particle`
+              if (!map.getSource(particleSourceId)) {
+                map.addSource(particleSourceId, {
+                  type: 'geojson',
+                  data: {
                     type: 'Feature',
                     properties: {},
                     geometry: {
                       type: 'Point',
-                      coordinates: path[Math.floor(particleIndex)]
+                      coordinates: path[0]
                     }
-                  })
+                  }
+                })
+              }
+
+              if (!map.getLayer(particleLayerId)) {
+                map.addLayer({
+                  id: particleLayerId,
+                  type: 'circle',
+                  source: particleSourceId,
+                  paint: {
+                    'circle-radius': 5,
+                    'circle-color': trajectoryColor,
+                    'circle-blur': 0.3,
+                    'circle-opacity': 0.9
+                  }
+                })
+              }
+
+              let particleIndex = 0
+              const speed = trajectory.type === 'hypersonic' ? 3 : trajectory.type === 'ballistic' ? 2 : 1
+              let animationFrame: number
+              
+              const animateParticle = () => {
+                if (!map || !mapRef.current) return
+                
+                const particleSource = map.getSource(particleSourceId)
+                if (!particleSource) return
+                
+                particleIndex = (particleIndex + speed) % path.length
+                
+                try {
+                  if (particleSource && (particleSource as mapboxgl.GeoJSONSource).setData) {
+                    (particleSource as mapboxgl.GeoJSONSource).setData({
+                      type: 'Feature',
+                      properties: {},
+                      geometry: {
+                        type: 'Point',
+                        coordinates: path[Math.floor(particleIndex)]
+                      }
+                    })
+                  }
+                } catch (error) {
+                  console.warn(`Error animating trajectory particle:`, error)
+                  return
                 }
                 
-                requestAnimationFrame(animateParticle)
+                animationFrame = requestAnimationFrame(animateParticle)
+                animationFrames.push(animationFrame)
               }
               
               animateParticle()
@@ -508,9 +534,13 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       if (rotationAnimationFrame) {
         cancelAnimationFrame(rotationAnimationFrame)
       }
+      animationFrames.forEach(frame => cancelAnimationFrame(frame))
       markersRef.current.forEach(marker => marker.remove())
       markersRef.current = []
-      map.remove()
+      if (map) {
+        map.remove()
+      }
+      mapRef.current = null
     }
   }, [is3D, mapStyle, onThreatSelect, showTrajectories])
 
@@ -520,7 +550,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     const map = mapRef.current
 
     const updateWeatherLayers = () => {
-      if (!map.isStyleLoaded()) return
+      if (!map || !mapRef.current || !map.isStyleLoaded()) return
 
       const layersToAdd: Array<{ id: string, type: WeatherLayerType }> = [
         { id: 'precipitation-layer', type: 'precipitation' },
@@ -540,17 +570,19 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               tileSize: 256
             })
 
-            map.addLayer({
-              id,
-              type: 'raster',
-              source: id,
-              paint: {
-                'raster-opacity': 0.6
-              },
-              layout: {
-                visibility: weatherLayers.has(type) ? 'visible' : 'none'
-              }
-            })
+            if (!map.getLayer(id)) {
+              map.addLayer({
+                id,
+                type: 'raster',
+                source: id,
+                paint: {
+                  'raster-opacity': 0.6
+                },
+                layout: {
+                  visibility: weatherLayers.has(type) ? 'visible' : 'none'
+                }
+              })
+            }
           } else {
             const layer = map.getLayer(id)
             if (layer) {
@@ -570,7 +602,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     if (map.isStyleLoaded()) {
       updateWeatherLayers()
     } else {
-      map.once('style.load', updateWeatherLayers)
+      const handler = map.once('style.load', updateWeatherLayers)
     }
   }, [weatherLayers])
 
