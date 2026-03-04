@@ -56,7 +56,7 @@ export async function queryAI(
 export async function queryAIStreaming(
   systemPrompt: string,
   userPrompt: string,
-  _onChunk?: (text: string) => void,
+  onChunk?: (text: string) => void,
 ): Promise<{ text: string; provider: AIProvider }> {
   // Try Gradient first
   if (isGradientConfigured()) {
@@ -65,7 +65,7 @@ export async function queryAIStreaming(
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ]
-      const text = await gradientStreamingCompletion(messages, _onChunk)
+      const text = await gradientStreamingCompletion(messages, onChunk)
       return { text, provider: 'gradient' }
     } catch (error) {
       console.warn('Gradient streaming failed, falling back to Spark:', error)
