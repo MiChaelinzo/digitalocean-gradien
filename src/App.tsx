@@ -4,11 +4,14 @@ import { IntelligenceBubble } from '@/components/IntelligenceBubble'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { Globe3D } from '@/components/Globe3D'
 import { ThreatDashboard } from '@/components/ThreatDashboard'
+import { SessionHistory } from '@/components/SessionHistory'
+import { KeyboardShortcuts } from '@/components/KeyboardShortcuts'
+import { StatusNotifications } from '@/components/StatusNotifications'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -25,6 +28,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
   const [activeTab, setActiveTab] = useState('intelligence')
+  const [showHistory, setShowHistory] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -40,6 +45,41 @@ function App() {
   useEffect(() => {
     scrollToBottom()
   }, [messages, streamingContent])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMod = e.ctrlKey || e.metaKey
+
+      if (isMod && e.key === 'n') {
+        e.preventDefault()
+        handleNewSession()
+      } else if (isMod && e.key === 'h') {
+        e.preventDefault()
+        setShowHistory(true)
+      } else if (isMod && e.key === 'k') {
+        e.preventDefault()
+        setShowShortcuts(true)
+      } else if (isMod && e.key === 'e') {
+        e.preventDefault()
+        exportCurrentSession()
+      } else if (isMod && e.key === '1') {
+        e.preventDefault()
+        setActiveTab('intelligence')
+      } else if (isMod && e.key === '2') {
+        e.preventDefault()
+        setActiveTab('globe')
+      } else if (isMod && e.key === '3') {
+        e.preventDefault()
+        setActiveTab('threats')
+      } else if (e.key === 'Escape') {
+        setShowHistory(false)
+        setShowShortcuts(false)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [messages])
 
   const getFormattedTime = () => {
     const now = new Date()
@@ -139,6 +179,31 @@ Provide detailed military intelligence analysis with actionable recommendations.
     }
   }
 
+  const exportCurrentSession = () => {
+    if (!messages || messages.length === 0) {
+      toast.error('No messages to export')
+      return
+    }
+
+    const blob = new Blob([JSON.stringify(messages, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `sentinel-intel-${Date.now()}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    toast.success('Session exported successfully')
+  }
+
+  const loadSession = async (sessionId: string) => {
+    const sessionKey = `session-data-${sessionId}`
+    const sessionData = await window.spark.kv.get(sessionKey)
+    
+    if (sessionData) {
+      setMessages(sessionData as Message[])
+    }
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -164,17 +229,51 @@ Provide detailed military intelligence analysis with actionable recommendations.
             </div>
           </div>
           
-          {messageList.length > 0 && (
+          <div className="flex items-center gap-2">
+            {messageList.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={exportCurrentSession}
+                  className="gap-2 text-xs font-mono uppercase"
+                  title="Export Session (Ctrl/Cmd+E)"
+                >
+                  <FileArrowDown size={16} />
+                  <span className="hidden md:inline">Export</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowHistory(true)}
+                  className="gap-2 text-xs font-mono uppercase"
+                  title="Session History (Ctrl/Cmd+H)"
+                >
+                  <Clock size={16} />
+                  <span className="hidden md:inline">History</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNewSession}
+                  className="gap-2 text-xs font-mono uppercase"
+                >
+                  <Plus size={16} weight="bold" />
+                  <span className="hidden md:inline">New Session</span>
+                </Button>
+              </>
+            )}
             <Button
               variant="outline"
               size="sm"
-              onClick={handleNewSession}
+              onClick={() => setShowShortcuts(true)}
               className="gap-2 text-xs font-mono uppercase"
+              title="Keyboard Shortcuts (Ctrl/Cmd+K)"
             >
-              <Plus size={16} weight="bold" />
-              <span className="hidden md:inline">New Session</span>
+              <KeyboardIcon size={16} />
+              <span className="hidden md:inline">Shortcuts</span>
             </Button>
-          )}
+          </div>
         </div>
       </header>
 
@@ -292,6 +391,20 @@ Provide detailed military intelligence analysis with actionable recommendations.
           </div>
         </div>
       </div>
+
+      <StatusNotifications />
+
+      {showHistory && (
+        <SessionHistory
+          currentMessages={messageList}
+          onLoadSession={loadSession}
+          onClose={() => setShowHistory(false)}
+        />
+      )}
+
+      {showShortcuts && (
+        <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />
+      )}
     </div>
   )
 }

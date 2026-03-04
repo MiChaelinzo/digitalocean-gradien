@@ -65,10 +65,10 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
                 <div className={`w-10 h-10 rounded-md ${example.color} flex items-center justify-center border border-current/30`}>
                   <example.icon size={20} weight="fill" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <div className="font-semibold text-xs uppercase tracking-wider mb-1.5">{example.title}</div>
-                  <div className="text-xs text-foreground/70 leading-relaxed font-mono">
-                    {example.prompt.substring(0, 70)}...
+                  <div className="text-xs text-foreground leading-[1.6] font-mono line-clamp-3">
+                    {example.prompt}
                   </div>
                 </div>
               </Button>
