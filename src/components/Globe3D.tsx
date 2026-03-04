@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Play, Pause, ArrowsClockwise, Warning, Target, Crosshair, Globe } from '@phosphor-icons/react'
+import { Play, Pause, ArrowsClockwise, Warning, Target, Crosshair, Globe, MagnifyingGlassMinus, MagnifyingGlassPlus } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import * as d3 from 'd3'
 
@@ -181,6 +181,11 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [showCountries, setShowCountries] = useState(true)
   const [showLabels, setShowLabels] = useState(true)
   const labelsGroupRef = useRef<THREE.Group | null>(null)
+  
+  const isDraggingRef = useRef(false)
+  const previousMousePositionRef = useRef({ x: 0, y: 0 })
+  const rotationRef = useRef({ x: 0, y: 0 })
+  const zoomRef = useRef(5)
 
   const latLngToVector3 = (lat: number, lng: number, radius: number): THREE.Vector3 => {
     const phi = (90 - lat) * (Math.PI / 180)
@@ -605,6 +610,8 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     }
 
     const onClick = (event: MouseEvent) => {
+      if (isDraggingRef.current) return
+      
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
@@ -623,19 +630,77 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       }
     }
 
+    const onMouseDown = (event: MouseEvent) => {
+      isDraggingRef.current = true
+      previousMousePositionRef.current = { x: event.clientX, y: event.clientY }
+      setIsRotating(false)
+    }
+
+    const onMouseUp = () => {
+      isDraggingRef.current = false
+    }
+
+    const onMouseDrag = (event: MouseEvent) => {
+      if (!isDraggingRef.current) return
+
+      const deltaX = event.clientX - previousMousePositionRef.current.x
+      const deltaY = event.clientY - previousMousePositionRef.current.y
+
+      previousMousePositionRef.current = { x: event.clientX, y: event.clientY }
+
+      rotationRef.current.y += deltaX * 0.005
+      rotationRef.current.x += deltaY * 0.005
+
+      rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x))
+
+      if (globe) {
+        globe.rotation.y = rotationRef.current.y
+        globe.rotation.x = rotationRef.current.x
+      }
+      if (markersGroup) {
+        markersGroup.rotation.y = rotationRef.current.y
+        markersGroup.rotation.x = rotationRef.current.x
+      }
+      if (trajectoriesGroup) {
+        trajectoriesGroup.rotation.y = rotationRef.current.y
+        trajectoriesGroup.rotation.x = rotationRef.current.x
+      }
+    }
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault()
+      
+      const zoomSpeed = 0.001
+      const delta = event.deltaY * zoomSpeed
+      
+      zoomRef.current += delta
+      zoomRef.current = Math.max(3, Math.min(10, zoomRef.current))
+      
+      camera.position.z = zoomRef.current
+    }
+
     containerRef.current.addEventListener('mousemove', onMouseMove)
     containerRef.current.addEventListener('click', onClick)
+    containerRef.current.addEventListener('mousedown', onMouseDown)
+    containerRef.current.addEventListener('mouseup', onMouseUp)
+    containerRef.current.addEventListener('mousemove', onMouseDrag)
+    containerRef.current.addEventListener('wheel', onWheel, { passive: false })
+    document.addEventListener('mouseup', onMouseUp)
 
     const animate = () => {
       animationFrameRef.current = requestAnimationFrame(animate)
 
-      if (isRotating && globe) {
-        globe.rotation.y += 0.001
+      if (isRotating && globe && !isDraggingRef.current) {
+        rotationRef.current.y += 0.001
+        globe.rotation.y = rotationRef.current.y
+        globe.rotation.x = rotationRef.current.x
         if (markersGroup) {
-          markersGroup.rotation.y += 0.001
+          markersGroup.rotation.y = rotationRef.current.y
+          markersGroup.rotation.x = rotationRef.current.x
         }
         if (trajectoriesGroup) {
-          trajectoriesGroup.rotation.y += 0.001
+          trajectoriesGroup.rotation.y = rotationRef.current.y
+          trajectoriesGroup.rotation.x = rotationRef.current.x
         }
       }
 
@@ -688,9 +753,14 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      document.removeEventListener('mouseup', onMouseUp)
       if (containerRef.current) {
         containerRef.current.removeEventListener('mousemove', onMouseMove)
         containerRef.current.removeEventListener('click', onClick)
+        containerRef.current.removeEventListener('mousedown', onMouseDown)
+        containerRef.current.removeEventListener('mouseup', onMouseUp)
+        containerRef.current.removeEventListener('mousemove', onMouseDrag)
+        containerRef.current.removeEventListener('wheel', onWheel)
         if (rendererRef.current?.domElement) {
           containerRef.current.removeChild(rendererRef.current.domElement)
         }
@@ -706,16 +776,39 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   }, [isRotating, onThreatSelect])
 
   const handleReset = () => {
+    rotationRef.current = { x: 0, y: 0 }
+    zoomRef.current = 5
+    
     if (globeRef.current && markersRef.current) {
+      globeRef.current.rotation.x = 0
       globeRef.current.rotation.y = 0
+      markersRef.current.rotation.x = 0
       markersRef.current.rotation.y = 0
     }
     if (trajectoriesRef.current) {
+      trajectoriesRef.current.rotation.x = 0
       trajectoriesRef.current.rotation.y = 0
+    }
+    if (cameraRef.current) {
+      cameraRef.current.position.z = 5
     }
     trajectoryStatesRef.current.forEach((state) => {
       state.progress = 0
     })
+  }
+
+  const handleZoomIn = () => {
+    zoomRef.current = Math.max(3, zoomRef.current - 0.5)
+    if (cameraRef.current) {
+      cameraRef.current.position.z = zoomRef.current
+    }
+  }
+
+  const handleZoomOut = () => {
+    zoomRef.current = Math.min(10, zoomRef.current + 0.5)
+    if (cameraRef.current) {
+      cameraRef.current.position.z = zoomRef.current
+    }
   }
 
   const getSeverityColor = (severity: string) => {
@@ -771,8 +864,27 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           <Button
             size="sm"
             variant="outline"
+            onClick={handleZoomIn}
+            className="bg-background/80 backdrop-blur-sm"
+            title="Zoom In"
+          >
+            <MagnifyingGlassPlus size={16} />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleZoomOut}
+            className="bg-background/80 backdrop-blur-sm"
+            title="Zoom Out"
+          >
+            <MagnifyingGlassMinus size={16} />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setIsRotating(!isRotating)}
             className="bg-background/80 backdrop-blur-sm"
+            title={isRotating ? "Pause Rotation" : "Start Rotation"}
           >
             {isRotating ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}
           </Button>
@@ -781,6 +893,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
             variant="outline"
             onClick={handleReset}
             className="bg-background/80 backdrop-blur-sm"
+            title="Reset View"
           >
             <ArrowsClockwise size={16} />
           </Button>
@@ -788,7 +901,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
 
         <div 
           ref={containerRef} 
-          className="w-full h-[600px] relative"
+          className="w-full h-[600px] relative cursor-grab active:cursor-grabbing"
           style={{ touchAction: 'none' }}
         />
 
