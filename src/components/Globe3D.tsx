@@ -3,8 +3,9 @@ import * as THREE from 'three'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Play, Pause, ArrowsClockwise, Warning, Target, Crosshair } from '@phosphor-icons/react'
+import { Play, Pause, ArrowsClockwise, Warning, Target, Crosshair, Globe } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
+import * as d3 from 'd3'
 
 interface ThreatLocation {
   id: string
@@ -177,6 +178,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [selectedThreat, setSelectedThreat] = useState<string | null>(null)
   const [hoveredThreat, setHoveredThreat] = useState<ThreatLocation | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [showCountries, setShowCountries] = useState(true)
+  const [showLabels, setShowLabels] = useState(true)
+  const labelsGroupRef = useRef<THREE.Group | null>(null)
 
   const latLngToVector3 = (lat: number, lng: number, radius: number): THREE.Vector3 => {
     const phi = (90 - lat) * (Math.PI / 180)
@@ -185,6 +189,199 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     const y = radius * Math.cos(phi)
     const z = radius * Math.sin(phi) * Math.sin(theta)
     return new THREE.Vector3(x, y, z)
+  }
+
+  const createCountryBoundaries = async (scene: THREE.Scene, globe: THREE.Mesh) => {
+    const boundariesGroup = new THREE.Group()
+    
+    try {
+      const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json') as any
+      const countries = (d3 as any).feature(world, world.objects.countries)
+      
+      countries.features.forEach((country: any) => {
+        if (country.geometry.type === 'Polygon') {
+          country.geometry.coordinates.forEach((polygon: any) => {
+            drawBoundary(polygon, boundariesGroup)
+          })
+        } else if (country.geometry.type === 'MultiPolygon') {
+          country.geometry.coordinates.forEach((multiPolygon: any) => {
+            multiPolygon.forEach((polygon: any) => {
+              drawBoundary(polygon, boundariesGroup)
+            })
+          })
+        }
+      })
+      
+      globe.add(boundariesGroup)
+    } catch (error) {
+      console.error('Error loading country boundaries:', error)
+    }
+  }
+
+  const drawBoundary = (coordinates: number[][], group: THREE.Group) => {
+    const points: THREE.Vector3[] = []
+    
+    coordinates.forEach((coord: number[]) => {
+      const [lng, lat] = coord
+      const vector = latLngToVector3(lat, lng, 2.005)
+      points.push(vector)
+    })
+    
+    if (points.length > 1) {
+      const geometry = new THREE.BufferGeometry().setFromPoints(points)
+      const material = new THREE.LineBasicMaterial({
+        color: 0x4488ff,
+        transparent: true,
+        opacity: 0.35,
+        linewidth: 1
+      })
+      const line = new THREE.Line(geometry, material)
+      group.add(line)
+    }
+  }
+
+  const addCountryLabels = (scene: THREE.Scene) => {
+    const majorCountries = [
+      { name: 'USA', lat: 37.0, lng: -95.0 },
+      { name: 'CANADA', lat: 56.0, lng: -106.0 },
+      { name: 'BRAZIL', lat: -14.0, lng: -51.0 },
+      { name: 'RUSSIA', lat: 61.0, lng: 105.0 },
+      { name: 'CHINA', lat: 35.0, lng: 105.0 },
+      { name: 'INDIA', lat: 20.0, lng: 77.0 },
+      { name: 'AUSTRALIA', lat: -25.0, lng: 133.0 },
+      { name: 'SOUTH AFRICA', lat: -30.0, lng: 22.0 },
+      { name: 'EGYPT', lat: 26.0, lng: 30.0 },
+      { name: 'SAUDI ARABIA', lat: 24.0, lng: 45.0 },
+      { name: 'IRAN', lat: 32.0, lng: 53.0 },
+      { name: 'UKRAINE', lat: 48.0, lng: 31.0 },
+      { name: 'FRANCE', lat: 46.0, lng: 2.0 },
+      { name: 'GERMANY', lat: 51.0, lng: 10.0 },
+      { name: 'UK', lat: 54.0, lng: -2.0 },
+      { name: 'SPAIN', lat: 40.0, lng: -4.0 },
+      { name: 'JAPAN', lat: 36.0, lng: 138.0 },
+      { name: 'S. KOREA', lat: 36.0, lng: 128.0 },
+      { name: 'MEXICO', lat: 23.0, lng: -102.0 },
+      { name: 'ARGENTINA', lat: -38.0, lng: -63.0 },
+      { name: 'TURKEY', lat: 39.0, lng: 35.0 },
+      { name: 'INDONESIA', lat: -0.5, lng: 117.0 },
+      { name: 'VIETNAM', lat: 16.0, lng: 108.0 },
+      { name: 'THAILAND', lat: 15.0, lng: 100.0 },
+      { name: 'NIGERIA', lat: 9.0, lng: 8.0 },
+      { name: 'KENYA', lat: -1.0, lng: 38.0 },
+      { name: 'POLAND', lat: 52.0, lng: 20.0 },
+      { name: 'ITALY', lat: 42.0, lng: 12.0 },
+      { name: 'N. KOREA', lat: 40.0, lng: 127.0 }
+    ]
+
+    const labelsGroup = new THREE.Group()
+    
+    majorCountries.forEach((country) => {
+      const canvas = document.createElement('canvas')
+      const context = canvas.getContext('2d')
+      if (!context) return
+      
+      canvas.width = 256
+      canvas.height = 64
+      
+      context.fillStyle = 'rgba(68, 136, 255, 0.8)'
+      context.font = 'bold 24px "Space Grotesk", sans-serif'
+      context.textAlign = 'center'
+      context.textBaseline = 'middle'
+      context.fillText(country.name, 128, 32)
+      
+      const texture = new THREE.CanvasTexture(canvas)
+      const material = new THREE.SpriteMaterial({ 
+        map: texture, 
+        transparent: true,
+        opacity: 0.7,
+        depthTest: false
+      })
+      const sprite = new THREE.Sprite(material)
+      
+      const position = latLngToVector3(country.lat, country.lng, 2.15)
+      sprite.position.copy(position)
+      sprite.scale.set(0.3, 0.075, 1)
+      
+      labelsGroup.add(sprite)
+    })
+    
+    scene.add(labelsGroup)
+    return labelsGroup
+  }
+
+  const addLatitudeLongitudeGrid = (globe: THREE.Mesh) => {
+    const gridGroup = new THREE.Group()
+    const radius = 2.005
+    
+    for (let lat = -80; lat <= 80; lat += 20) {
+      const points: THREE.Vector3[] = []
+      for (let lng = -180; lng <= 180; lng += 5) {
+        points.push(latLngToVector3(lat, lng, radius))
+      }
+      const geometry = new THREE.BufferGeometry().setFromPoints(points)
+      const material = new THREE.LineBasicMaterial({
+        color: 0x2244ff,
+        transparent: true,
+        opacity: 0.25
+      })
+      const line = new THREE.Line(geometry, material)
+      gridGroup.add(line)
+    }
+    
+    for (let lng = -180; lng <= 180; lng += 20) {
+      const points: THREE.Vector3[] = []
+      for (let lat = -90; lat <= 90; lat += 5) {
+        points.push(latLngToVector3(lat, lng, radius))
+      }
+      const geometry = new THREE.BufferGeometry().setFromPoints(points)
+      const material = new THREE.LineBasicMaterial({
+        color: 0x2244ff,
+        transparent: true,
+        opacity: 0.25
+      })
+      const line = new THREE.Line(geometry, material)
+      gridGroup.add(line)
+    }
+    
+    globe.add(gridGroup)
+  }
+
+  const addMajorCities = (scene: THREE.Scene) => {
+    const cities = [
+      { name: 'Washington DC', lat: 38.9, lng: -77.0 },
+      { name: 'London', lat: 51.5, lng: -0.1 },
+      { name: 'Paris', lat: 48.9, lng: 2.4 },
+      { name: 'Berlin', lat: 52.5, lng: 13.4 },
+      { name: 'Moscow', lat: 55.8, lng: 37.6 },
+      { name: 'Beijing', lat: 39.9, lng: 116.4 },
+      { name: 'Tokyo', lat: 35.7, lng: 139.7 },
+      { name: 'Seoul', lat: 37.6, lng: 127.0 },
+      { name: 'Delhi', lat: 28.6, lng: 77.2 },
+      { name: 'Mumbai', lat: 19.1, lng: 72.9 },
+      { name: 'Dubai', lat: 25.3, lng: 55.3 },
+      { name: 'Tel Aviv', lat: 32.1, lng: 34.8 },
+      { name: 'Cairo', lat: 30.0, lng: 31.2 },
+      { name: 'Sydney', lat: -33.9, lng: 151.2 },
+      { name: 'Singapore', lat: 1.4, lng: 103.8 }
+    ]
+    
+    const citiesGroup = new THREE.Group()
+    
+    cities.forEach((city) => {
+      const position = latLngToVector3(city.lat, city.lng, 2.02)
+      
+      const dotGeometry = new THREE.SphereGeometry(0.015, 8, 8)
+      const dotMaterial = new THREE.MeshBasicMaterial({
+        color: 0xaaccff,
+        transparent: true,
+        opacity: 0.8
+      })
+      const dot = new THREE.Mesh(dotGeometry, dotMaterial)
+      dot.position.copy(position)
+      citiesGroup.add(dot)
+    })
+    
+    scene.add(citiesGroup)
   }
 
   const createCurvedPath = (start: THREE.Vector3, end: THREE.Vector3): THREE.CatmullRomCurve3 => {
@@ -248,14 +445,14 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     scene.add(globe)
     globeRef.current = globe
 
-    const latLongGeometry = new THREE.EdgesGeometry(sphereGeometry)
-    const latLongMaterial = new THREE.LineBasicMaterial({ 
-      color: 0x2244ff, 
-      transparent: true, 
-      opacity: 0.15 
-    })
-    const latLongLines = new THREE.LineSegments(latLongGeometry, latLongMaterial)
-    globe.add(latLongLines)
+    addLatitudeLongitudeGrid(globe)
+
+    createCountryBoundaries(scene, globe)
+    
+    const labelsGroup = addCountryLabels(scene)
+    labelsGroupRef.current = labelsGroup
+    
+    addMajorCities(scene)
 
     const markersGroup = new THREE.Group()
     scene.add(markersGroup)
@@ -540,19 +737,37 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     }
   }
 
+  useEffect(() => {
+    if (labelsGroupRef.current) {
+      labelsGroupRef.current.visible = showLabels
+    }
+  }, [showLabels])
+
   return (
     <div className="space-y-4">
       <Card className="relative overflow-hidden bg-card/50 backdrop-blur-sm">
-        <div className="absolute top-4 left-4 z-10 flex gap-2">
+        <div className="absolute top-4 left-4 z-10 flex gap-2 flex-wrap max-w-md">
           <Badge variant="outline" className="bg-background/80 backdrop-blur-sm font-mono text-xs uppercase">
-            3D Globe - Live Trajectories
+            3D Globe - Geographic Data
           </Badge>
           <Badge variant="outline" className="bg-destructive/20 text-destructive border-destructive/50 font-mono text-xs uppercase">
             {trajectories.length} Active Paths
           </Badge>
+          <Badge variant="outline" className="bg-primary/20 text-primary border-primary/50 font-mono text-xs uppercase">
+            {threatLocations.length} Threats
+          </Badge>
         </div>
 
         <div className="absolute top-4 right-4 z-10 flex gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowLabels(!showLabels)}
+            className={`bg-background/80 backdrop-blur-sm ${!showLabels ? 'opacity-50' : ''}`}
+            title="Toggle Country Labels"
+          >
+            <Globe size={16} weight={showLabels ? "fill" : "regular"} />
+          </Button>
           <Button
             size="sm"
             variant="outline"
