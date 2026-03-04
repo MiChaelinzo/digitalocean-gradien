@@ -13,11 +13,11 @@ A classified-level military intelligence and defense monitoring platform that pr
 ## Essential Features
 
 ### Real-Time 3D Globe Visualization
-- **Functionality**: Interactive Three.js-powered 3D globe displaying active war zones, conflicts, and military operations with rotating Earth view, live threat markers, and geographic positioning for GCC-Iran tensions, Israel conflicts, Cuba situations, Ukraine, and other hotspots
-- **Purpose**: Provides immersive, intuitive spatial intelligence on global military situations for strategic planning and threat assessment with realistic geographic context
-- **Trigger**: Automatic rendering on globe tab access with continuous rotation and real-time marker updates
-- **Progression**: Globe loads and auto-rotates → User hovers over threat markers → Tooltip displays threat details → User clicks marker → Detailed intelligence fills prompt → AI analyzes current situation → Recommendations provided
-- **Success criteria**: Globe renders within 2 seconds; smooth 60fps rotation; all threat markers visible and interactive; hover tooltips appear within 100ms; click interactions populate intelligence queries immediately
+- **Functionality**: Interactive Mapbox-powered 3D globe displaying active war zones, conflicts, and military operations with rotating Earth view, live threat markers, geographic positioning for GCC-Iran tensions, Israel conflicts, Cuba situations, Ukraine, and other hotspots. Includes real-time weather overlays (precipitation, wind patterns, temperature, cloud cover) for operational weather intelligence
+- **Purpose**: Provides immersive, intuitive spatial intelligence on global military situations for strategic planning and threat assessment with realistic geographic context. Weather overlays enable operational planning based on real-time environmental conditions
+- **Trigger**: Automatic rendering on globe tab access with continuous rotation and real-time marker updates; weather overlays toggle via dropdown menu
+- **Progression**: Globe loads with selectable map styles (Dark/Satellite/Terrain) → User enables weather layers → Precipitation/Wind/Temperature/Cloud data overlays on map → User hovers over threat markers → Tooltip displays threat details → User clicks marker → Detailed intelligence fills prompt → AI analyzes current situation with weather context → Recommendations provided
+- **Success criteria**: Globe renders within 2 seconds; smooth 60fps rotation; all threat markers visible and interactive; hover tooltips appear within 100ms; weather layers toggle instantly; click interactions populate intelligence queries immediately; map style switching seamless
 
 ### Real-Time Conflict Map Viewer
 - **Functionality**: Interactive 2D global map displaying active war zones, conflicts, and military operations with live updates on GCC-Iran tensions, Israel conflicts, Cuba situations, Ukraine, and other hotspots
@@ -131,7 +131,8 @@ Animations should be purposeful and minimal, reinforcing the sense of real-time 
   - `Dialog` for detailed threat analysis and scenario planning
 
 - **Customizations**:
-  - Custom Three.js 3D globe component with orbital controls, threat markers, and real-time updates
+  - Custom Mapbox 3D globe component with manual zoom/rotate controls, multiple map styles (Dark/Satellite/Terrain), threat markers, and real-time updates
+  - Weather overlay system with toggleable layers for precipitation, wind patterns, temperature, and cloud cover using OpenWeatherMap tile layers
   - Custom map component with D3.js for conflict visualization
   - Threat card component with severity indicators and action buttons
   - Intelligence message bubble optimized for technical data
@@ -158,6 +159,12 @@ Animations should be purposeful and minimal, reinforcing the sense of real-time 
   - `Lightning` for rapid response
   - `Eye` for surveillance
   - `Broadcast` for communications
+  - `CloudRain` for precipitation weather layer
+  - `Wind` for wind pattern weather layer
+  - `CloudSnow` for cloud cover weather layer
+  - `Lightning` for temperature weather layer
+  - `MapTrifold` for terrain/map style switching
+  - `Planet` for satellite view
 
 - **Spacing**:
   - Container padding: `p-4` (16px) for dense information display

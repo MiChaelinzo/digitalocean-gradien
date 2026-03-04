@@ -4,13 +4,15 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet } from '@phosphor-icons/react'
+import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 
 mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2p0MG01MXRqMW45cjQzb2R6b2ptc3J4MSJ9.zA2W0IkI0c6KaAhJfk9bWg'
@@ -117,6 +119,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [is3D, setIs3D] = useState(true)
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite' | 'terrain'>('dark')
+  const [weatherLayers, setWeatherLayers] = useState<Set<string>>(new Set())
+  
+  type WeatherLayerType = 'precipitation' | 'wind' | 'temperature' | 'clouds'
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
@@ -162,6 +167,36 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       case 'terrain': return 'Terrain'
       case 'dark': 
       default: return 'Dark'
+    }
+  }
+
+  const toggleWeatherLayer = (layer: WeatherLayerType) => {
+    setWeatherLayers(prev => {
+      const newLayers = new Set(prev)
+      if (newLayers.has(layer)) {
+        newLayers.delete(layer)
+      } else {
+        newLayers.add(layer)
+      }
+      return newLayers
+    })
+  }
+
+  const getWeatherLayerLabel = (layer: WeatherLayerType) => {
+    switch (layer) {
+      case 'precipitation': return 'Precipitation'
+      case 'wind': return 'Wind Patterns'
+      case 'temperature': return 'Temperature'
+      case 'clouds': return 'Cloud Cover'
+    }
+  }
+
+  const getWeatherLayerIcon = (layer: WeatherLayerType) => {
+    switch (layer) {
+      case 'precipitation': return CloudRain
+      case 'wind': return Wind
+      case 'temperature': return Lightning
+      case 'clouds': return CloudSnow
     }
   }
 
@@ -254,6 +289,65 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     }
   }, [is3D, mapStyle, onThreatSelect])
 
+  useEffect(() => {
+    if (!mapRef.current) return
+    
+    const map = mapRef.current
+
+    map.once('load', () => {
+      const layersToAdd: Array<{ id: string, type: WeatherLayerType }> = [
+        { id: 'precipitation-layer', type: 'precipitation' },
+        { id: 'wind-layer', type: 'wind' },
+        { id: 'temperature-layer', type: 'temperature' },
+        { id: 'clouds-layer', type: 'clouds' }
+      ]
+
+      layersToAdd.forEach(({ id, type }) => {
+        if (!map.getSource(id)) {
+          map.addSource(id, {
+            type: 'raster',
+            tiles: [getWeatherTileUrl(type)],
+            tileSize: 256
+          })
+
+          map.addLayer({
+            id,
+            type: 'raster',
+            source: id,
+            paint: {
+              'raster-opacity': 0.6
+            },
+            layout: {
+              visibility: weatherLayers.has(type) ? 'visible' : 'none'
+            }
+          })
+        } else {
+          map.setLayoutProperty(
+            id,
+            'visibility',
+            weatherLayers.has(type) ? 'visible' : 'none'
+          )
+        }
+      })
+    })
+  }, [weatherLayers])
+
+  const getWeatherTileUrl = (type: WeatherLayerType): string => {
+    const baseUrl = 'https://tile.openweathermap.org/map'
+    const appid = 'demo'
+    
+    switch (type) {
+      case 'precipitation':
+        return `${baseUrl}/precipitation_new/{z}/{x}/{y}.png?appid=${appid}`
+      case 'wind':
+        return `${baseUrl}/wind_new/{z}/{x}/{y}.png?appid=${appid}`
+      case 'temperature':
+        return `${baseUrl}/temp_new/{z}/{x}/{y}.png?appid=${appid}`
+      case 'clouds':
+        return `${baseUrl}/clouds_new/{z}/{x}/{y}.png?appid=${appid}`
+    }
+  }
+
   const handleReset = () => {
     if (mapRef.current) {
       mapRef.current.flyTo({
@@ -327,9 +421,52 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           <Badge variant="outline" className="bg-primary/20 text-primary border-primary/50 font-mono text-xs uppercase">
             {threatLocations.length} Threats
           </Badge>
+          {weatherLayers.size > 0 && (
+            <Badge variant="outline" className="bg-accent/20 text-accent border-accent/50 font-mono text-xs uppercase">
+              {weatherLayers.size} Weather Layer{weatherLayers.size > 1 ? 's' : ''} Active
+            </Badge>
+          )}
         </div>
 
         <div className="absolute top-4 right-4 z-10 flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`bg-background/80 backdrop-blur-sm gap-2 ${weatherLayers.size > 0 ? 'border-accent text-accent' : ''}`}
+                title="Weather Overlays"
+              >
+                <CloudRain size={16} weight={weatherLayers.size > 0 ? 'fill' : 'regular'} />
+                <span className="hidden sm:inline text-xs font-mono">Weather</span>
+                {weatherLayers.size > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 text-[10px] flex items-center justify-center">
+                    {weatherLayers.size}
+                  </Badge>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-md">
+              <DropdownMenuLabel className="font-mono text-xs text-muted-foreground uppercase">
+                Weather Layers
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(['precipitation', 'wind', 'temperature', 'clouds'] as WeatherLayerType[]).map((layer) => {
+                const Icon = getWeatherLayerIcon(layer)
+                const isActive = weatherLayers.has(layer)
+                return (
+                  <DropdownMenuItem
+                    key={layer}
+                    onClick={() => toggleWeatherLayer(layer)}
+                    className={isActive ? 'bg-primary/20 text-primary' : ''}
+                  >
+                    <Icon size={16} weight={isActive ? 'fill' : 'regular'} className="mr-2" />
+                    <span className="font-mono text-xs">{getWeatherLayerLabel(layer)}</span>
+                  </DropdownMenuItem>
+                )
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
