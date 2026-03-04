@@ -15,7 +15,7 @@ import {
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
 
-mapboxgl.accessToken = 'pk.eyJ1IjoiZXhhbXBsZXMiLCJhIjoiY2p0MG01MXRqMW45cjQzb2R6b2ptc3J4MSJ9.zA2W0IkI0c6KaAhJfk9bWg'
+mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
 
 interface ThreatLocation {
   id: string
@@ -206,11 +206,12 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: getMapStyleUrl(mapStyle),
-      projection: 'globe',
+      projection: { name: 'globe' },
       center: [30, 30],
-      zoom: 1.5,
-      pitch: is3D ? 45 : 0,
-      bearing: 0
+      zoom: 1.2,
+      pitch: is3D ? 50 : 0,
+      bearing: 0,
+      antialias: true
     })
 
     mapRef.current = map
@@ -223,9 +224,18 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         'space-color': 'rgb(5, 5, 15)',
         'star-intensity': 0.6
       })
+
+      map.addSource('mapbox-dem', {
+        type: 'raster-dem',
+        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        tileSize: 512,
+        maxzoom: 14
+      })
+
+      map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 })
     })
 
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right')
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: true, showZoom: true, visualizePitch: true }), 'top-right')
 
     threatLocations.forEach((threat) => {
       const el = document.createElement('div')
@@ -352,8 +362,8 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     if (mapRef.current) {
       mapRef.current.flyTo({
         center: [30, 30],
-        zoom: 1.5,
-        pitch: is3D ? 45 : 0,
+        zoom: 1.2,
+        pitch: is3D ? 50 : 0,
         bearing: 0,
         duration: 2000
       })
@@ -378,7 +388,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       const newIs3D = !is3D
       setIs3D(newIs3D)
       mapRef.current.flyTo({
-        pitch: newIs3D ? 45 : 0,
+        pitch: newIs3D ? 50 : 0,
         duration: 1000
       })
     }
