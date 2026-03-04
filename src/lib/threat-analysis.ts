@@ -1,131 +1,80 @@
 export type ThreatSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info' | 'none'
 
+interface ThreatKeywords {
+  critical: string[]
+  high: string[]
+  medium: string[]
+  low: string[]
+  info: string[]
+}
+
+const threatKeywords: ThreatKeywords = {
+  critical: [
+    'imminent', 'immediate threat', 'critical alert', 'missile launch', 'nuclear', 
+    'hypersonic', 'ballistic missile', 'attack detected', 'red alert', 'emergency response',
+    'active engagement', 'incoming', 'strike imminent', 'defcon', 'war declared',
+    'active shooter', 'explosion', 'casualty', 'urgent evacuation'
+  ],
+  high: [
+    'high priority', 'escalating', 'hostile', 'armed conflict', 'military buildup',
+    'troop movement', 'fighter jet', 'bomber', 'naval assets', 'combat ready',
+    'heightened alert', 'defensive posture', 'mobilization', 'air raid', 'missile defense',
+    'cyber attack', 'infiltration', 'breach detected', 'drone swarm'
+  ],
+  medium: [
+    'monitoring', 'elevated tension', 'surveillance', 'reconnaissance', 'patrol',
+    'border incident', 'diplomatic crisis', 'sanctions', 'military exercise',
+    'threat assessment', 'intelligence gathering', 'warning', 'potential threat',
+    'suspicious activity', 'unidentified', 'tracking', 'investigation'
+  ],
+  low: [
+    'routine patrol', 'standard operation', 'all clear', 'no immediate threat',
+    'stable situation', 'de-escalation', 'peace talks', 'diplomatic solution',
+    'normal operations', 'low risk', 'minimal threat', 'secure', 'cleared'
+  ],
+  info: [
+    'update', 'report', 'briefing', 'status', 'assessment', 'analysis',
+    'recommendation', 'strategy', 'tactical', 'operational', 'intelligence',
+    'information', 'data', 'metrics', 'statistics'
+  ]
+}
+
 export interface ThreatAnalysis {
   severity: ThreatSeverity
   keywords: string[]
   confidence: number
 }
 
-const SEVERITY_KEYWORDS = {
-  critical: [
-    'critical',
-    'immediate threat',
-    'imminent',
-    'nuclear',
-    'ballistic missile',
-    'icbm',
-    'wmd',
-    'mass casualty',
-    'catastrophic',
-    'emergency',
-    'defcon',
-    'hostile launch',
-    'incoming',
-    'hypersonic missile',
-    'strike imminent',
-    'attack in progress'
-  ],
-  high: [
-    'severe',
-    'urgent',
-    'high priority',
-    'hostile',
-    'enemy',
-    'missile',
-    'airstrike',
-    'combat',
-    'offensive',
-    'invasion',
-    'escalation',
-    'military buildup',
-    'aggressive',
-    'threat level high',
-    'countermeasures required',
-    'defensive action',
-    'scramble'
-  ],
-  medium: [
-    'elevated',
-    'moderate',
-    'monitor',
-    'surveillance',
-    'patrol',
-    'reconnaissance',
-    'suspicious',
-    'unusual activity',
-    'increased activity',
-    'potential threat',
-    'caution',
-    'alert',
-    'watch',
-    'standby'
-  ],
-  low: [
-    'minimal',
-    'routine',
-    'standard',
-    'normal',
-    'peaceful',
-    'training',
-    'exercise',
-    'low risk',
-    'stable',
-    'calm',
-    'baseline'
-  ],
-  info: [
-    'information',
-    'update',
-    'report',
-    'briefing',
-    'status',
-    'overview',
-    'summary',
-    'analysis',
-    'assessment',
-    'intelligence'
-  ]
-}
-
 export function analyzeThreatSeverity(content: string): ThreatAnalysis {
   const lowerContent = content.toLowerCase()
   const foundKeywords: string[] = []
-  const severityScores: Record<ThreatSeverity, number> = {
-    critical: 0,
-    high: 0,
-    medium: 0,
-    low: 0,
-    info: 0,
-    none: 0
-  }
+  let severity: ThreatSeverity = 'none'
+  let maxScore = 0
 
-  for (const [severity, keywords] of Object.entries(SEVERITY_KEYWORDS)) {
-    for (const keyword of keywords) {
-      if (lowerContent.includes(keyword.toLowerCase())) {
-        severityScores[severity as ThreatSeverity]++
-        foundKeywords.push(keyword)
+  const severityOrder: ThreatSeverity[] = ['critical', 'high', 'medium', 'low', 'info']
+  const severityScores = { critical: 5, high: 4, medium: 3, low: 2, info: 1, none: 0 }
+
+  for (const level of severityOrder) {
+    if (level === 'none') continue
+    const keywords = threatKeywords[level as keyof ThreatKeywords]
+    const matches = keywords.filter((keyword: string) => lowerContent.includes(keyword))
+    
+    if (matches.length > 0) {
+      foundKeywords.push(...matches)
+      const score = severityScores[level] * matches.length
+      
+      if (score > maxScore) {
+        maxScore = score
+        severity = level
       }
     }
   }
 
-  let maxScore = 0
-  let detectedSeverity: ThreatSeverity = 'none'
-
-  const priorityOrder: ThreatSeverity[] = ['critical', 'high', 'medium', 'low', 'info']
-  
-  for (const severity of priorityOrder) {
-    if (severityScores[severity] > maxScore) {
-      maxScore = severityScores[severity]
-      detectedSeverity = severity
-    }
-  }
-
-  const totalMatches = Object.values(severityScores).reduce((a, b) => a + b, 0)
-  const confidence = totalMatches > 0 ? Math.min((maxScore / totalMatches) * 100, 100) : 0
+  const confidence = Math.min(100, maxScore * 10)
 
   return {
-    severity: detectedSeverity,
-    keywords: foundKeywords,
+    severity,
+    keywords: [...new Set(foundKeywords)],
     confidence
   }
 }
@@ -133,17 +82,17 @@ export function analyzeThreatSeverity(content: string): ThreatAnalysis {
 export function getSeverityColor(severity: ThreatSeverity): string {
   switch (severity) {
     case 'critical':
-      return 'text-destructive'
+      return 'text-destructive border-destructive'
     case 'high':
-      return 'text-warning'
+      return 'text-warning border-warning'
     case 'medium':
-      return 'text-accent'
+      return 'text-accent border-accent'
     case 'low':
-      return 'text-success'
+      return 'text-success border-success'
     case 'info':
-      return 'text-primary'
+      return 'text-primary border-primary'
     default:
-      return 'text-muted-foreground'
+      return 'text-muted-foreground border-border'
   }
 }
 
@@ -160,23 +109,23 @@ export function getSeverityBgColor(severity: ThreatSeverity): string {
     case 'info':
       return 'bg-primary/10 border-primary/50'
     default:
-      return 'bg-card/10 border-border/50'
+      return ''
   }
 }
 
 export function getSeverityLabel(severity: ThreatSeverity): string {
   switch (severity) {
     case 'critical':
-      return 'CRITICAL THREAT'
+      return 'CRITICAL'
     case 'high':
-      return 'HIGH PRIORITY'
+      return 'HIGH'
     case 'medium':
-      return 'ELEVATED ALERT'
+      return 'MEDIUM'
     case 'low':
-      return 'LOW RISK'
+      return 'LOW'
     case 'info':
-      return 'INFORMATION'
+      return 'INFO'
     default:
-      return 'STANDARD'
+      return 'NONE'
   }
 }

@@ -41,11 +41,11 @@ A classified-level military intelligence and defense monitoring platform that pr
 - **Success criteria**: Recommendations delivered within 3 seconds; strategies reference military doctrine and current capabilities
 
 ### Intelligence Chat Interface
-- **Functionality**: Technical AI assistant specialized in military intelligence, threat analysis, geopolitical assessment, and defense strategy with access to conflict data. Includes automatic threat severity detection that analyzes message content and displays visual severity indicators (Critical, High, Medium, Low, Info) with corresponding icons and color-coding
-- **Purpose**: Enables natural language queries about complex defense scenarios and provides expert-level analysis with immediate visual threat assessment
+- **Functionality**: Technical AI assistant specialized in military intelligence, threat analysis, geopolitical assessment, and defense strategy with access to conflict data. Includes automatic threat severity detection that analyzes message content and displays visual severity indicators (Critical, High, Medium, Low, Info) with corresponding icons and color-coding. Fourth tab includes comprehensive Analytics Dashboard with real-time charts showing threat trends over time, regional distribution, defense system effectiveness, and response time analysis using recharts visualization library
+- **Purpose**: Enables natural language queries about complex defense scenarios and provides expert-level analysis with immediate visual threat assessment. Analytics tab provides data-driven insights for strategic planning and operational optimization
 - **Trigger**: User submits intelligence query
-- **Progression**: User asks question → AI processes with military context → Streams detailed technical response → Threat analysis runs on content → Severity indicator displays with badge → Provides source references → Offers follow-up analysis options
-- **Success criteria**: Responses include technical specifications, threat assessments, and strategic recommendations; maintains operational security protocols; severity indicators appear within 100ms of message completion; keyword detection accuracy >90%
+- **Progression**: User asks question → AI processes with military context → Streams detailed technical response → Threat analysis runs on content → Severity indicator displays with badge → Provides source references → Offers follow-up analysis options. Analytics: User switches to Analytics tab → Visual dashboard loads with 4 key metrics → User explores threat trends, regional distribution, defense effectiveness, and response time charts → Data updates in real-time
+- **Success criteria**: Responses include technical specifications, threat assessments, and strategic recommendations; maintains operational security protocols; severity indicators appear within 100ms of message completion; keyword detection accuracy >90%; Analytics dashboard renders within 2 seconds with smooth chart interactions
 
 ### Threat Alert Dashboard
 - **Functionality**: Centralized view of active threats, alert levels, and priority intelligence items with color-coded severity indicators

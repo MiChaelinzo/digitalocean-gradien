@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useKV } from '@github/spark/hooks'
+import { AnalyticsDashboard } from '@/components/AnalyticsDashboard'
 import { IntelligenceBubble } from '@/components/IntelligenceBubble'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { Globe3D } from '@/components/Globe3D'
@@ -14,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -321,6 +322,13 @@ Provide detailed military intelligence analysis with actionable recommendations.
                   <span className="hidden sm:inline">3D Globe</span>
                 </TabsTrigger>
                 <TabsTrigger 
+                  value="analytics" 
+                  className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary font-mono text-xs uppercase px-3 md:px-4 py-2"
+                >
+                  <ChartLine size={16} weight="fill" />
+                  <span className="hidden sm:inline">Analytics</span>
+                </TabsTrigger>
+                <TabsTrigger 
                   value="threats" 
                   className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary font-mono text-xs uppercase px-3 md:px-4 py-2"
                 >
@@ -368,6 +376,14 @@ Provide detailed military intelligence analysis with actionable recommendations.
               <ScrollArea className="h-full">
                 <div className="container mx-auto px-4 md:px-6 py-6">
                   <Globe3D onThreatSelect={handleThreatSelect} />
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="analytics" className="h-full m-0">
+              <ScrollArea className="h-full">
+                <div className="container mx-auto px-4 md:px-6 py-6">
+                  <AnalyticsDashboard />
                 </div>
               </ScrollArea>
             </TabsContent>
