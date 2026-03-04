@@ -109,10 +109,25 @@
   }
 }
 
+@keyframes severity-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+}
+
 .pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
 .radar-sweep {
   animation: radar-sweep 4s linear infinite;
+}
+
+.severity-pulse {
+  animation: severity-pulse 2s ease-in-out infinite;
 }

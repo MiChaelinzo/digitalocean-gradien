@@ -41,11 +41,11 @@ A classified-level military intelligence and defense monitoring platform that pr
 - **Success criteria**: Recommendations delivered within 3 seconds; strategies reference military doctrine and current capabilities
 
 ### Intelligence Chat Interface
-- **Functionality**: Technical AI assistant specialized in military intelligence, threat analysis, geopolitical assessment, and defense strategy with access to conflict data
-- **Purpose**: Enables natural language queries about complex defense scenarios and provides expert-level analysis
+- **Functionality**: Technical AI assistant specialized in military intelligence, threat analysis, geopolitical assessment, and defense strategy with access to conflict data. Includes automatic threat severity detection that analyzes message content and displays visual severity indicators (Critical, High, Medium, Low, Info) with corresponding icons and color-coding
+- **Purpose**: Enables natural language queries about complex defense scenarios and provides expert-level analysis with immediate visual threat assessment
 - **Trigger**: User submits intelligence query
-- **Progression**: User asks question → AI processes with military context → Streams detailed technical response → Provides source references → Offers follow-up analysis options
-- **Success criteria**: Responses include technical specifications, threat assessments, and strategic recommendations; maintains operational security protocols
+- **Progression**: User asks question → AI processes with military context → Streams detailed technical response → Threat analysis runs on content → Severity indicator displays with badge → Provides source references → Offers follow-up analysis options
+- **Success criteria**: Responses include technical specifications, threat assessments, and strategic recommendations; maintains operational security protocols; severity indicators appear within 100ms of message completion; keyword detection accuracy >90%
 
 ### Threat Alert Dashboard
 - **Functionality**: Centralized view of active threats, alert levels, and priority intelligence items with color-coded severity indicators
@@ -135,7 +135,8 @@ Animations should be purposeful and minimal, reinforcing the sense of real-time 
   - Weather overlay system with toggleable layers for precipitation, wind patterns, temperature, and cloud cover using OpenWeatherMap tile layers
   - Custom map component with D3.js for conflict visualization
   - Threat card component with severity indicators and action buttons
-  - Intelligence message bubble optimized for technical data
+  - Intelligence message bubble optimized for technical data with automatic threat severity detection and visual indicators
+  - Threat severity badge system with five levels: Critical (pulsing red with Siren icon), High (amber with ShieldWarning icon), Medium (accent with Warning icon), Low (green with CheckCircle icon), Info (blue with Info icon)
   - Status dashboard with real-time updating metrics
   - Radar-style threat proximity visualization
   - Timeline component for conflict progression tracking
@@ -152,13 +153,17 @@ Animations should be purposeful and minimal, reinforcing the sense of real-time 
   - `Airplane` for aircraft threats
   - `Rocket` for missile systems
   - `Shield` for defense systems
-  - `Warning` for alerts
+  - `Warning` for alerts and medium severity threats
   - `Pulse` for live monitoring
   - `Target` for tracking systems
   - `Globe` for global view
   - `Lightning` for rapid response
   - `Eye` for surveillance
   - `Broadcast` for communications
+  - `Siren` for critical threat severity indicators
+  - `ShieldWarning` for high priority threat severity
+  - `CheckCircle` for low risk severity indicators
+  - `Info` for informational severity level
   - `CloudRain` for precipitation weather layer
   - `Wind` for wind pattern weather layer
   - `CloudSnow` for cloud cover weather layer
