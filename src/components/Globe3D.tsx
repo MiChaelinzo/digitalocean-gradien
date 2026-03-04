@@ -389,6 +389,100 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     scene.add(citiesGroup)
   }
 
+  const createLandmasses = async (globe: THREE.Mesh) => {
+    const landmassGroup = new THREE.Group()
+    
+    try {
+      const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json') as any
+      const land = (d3 as any).feature(world, world.objects.land)
+      
+      if (land.geometry.type === 'MultiPolygon') {
+        land.geometry.coordinates.forEach((multiPolygon: any) => {
+          multiPolygon.forEach((polygon: any) => {
+            drawLandmass(polygon, landmassGroup)
+          })
+        })
+      } else if (land.geometry.type === 'Polygon') {
+        land.geometry.coordinates.forEach((polygon: any) => {
+          drawLandmass(polygon, landmassGroup)
+        })
+      }
+      
+      globe.add(landmassGroup)
+    } catch (error) {
+      console.error('Error loading landmasses:', error)
+    }
+  }
+
+  const drawLandmass = (coordinates: number[][], group: THREE.Group) => {
+    const points: THREE.Vector3[] = []
+    
+    coordinates.forEach((coord: number[]) => {
+      const [lng, lat] = coord
+      const vector = latLngToVector3(lat, lng, 2.01)
+      points.push(vector)
+    })
+    
+    if (points.length > 2) {
+      const shape = new THREE.Shape()
+      
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      
+      canvas.width = 512
+      canvas.height = 512
+      
+      const projected: Array<{x: number, y: number}> = []
+      points.forEach((point) => {
+        const x = (Math.atan2(point.x, point.z) / Math.PI + 1) * 0.5
+        const y = (Math.asin(point.y / 2.01) / Math.PI + 0.5)
+        projected.push({ x, y })
+      })
+      
+      if (projected.length > 0) {
+        ctx.fillStyle = '#1a4d2e'
+        ctx.beginPath()
+        ctx.moveTo(projected[0].x * 512, projected[0].y * 512)
+        for (let i = 1; i < projected.length; i++) {
+          ctx.lineTo(projected[i].x * 512, projected[i].y * 512)
+        }
+        ctx.closePath()
+        ctx.fill()
+      }
+      
+      const geometry = new THREE.BufferGeometry().setFromPoints(points)
+      const material = new THREE.LineBasicMaterial({
+        color: 0x2d6b3e,
+        transparent: true,
+        opacity: 0.6,
+        linewidth: 1.5
+      })
+      const line = new THREE.LineLoop(geometry, material)
+      group.add(line)
+      
+      const fillGeometry = new THREE.BufferGeometry()
+      const vertices: number[] = []
+      for (let i = 0; i < points.length - 2; i++) {
+        vertices.push(points[0].x, points[0].y, points[0].z)
+        vertices.push(points[i + 1].x, points[i + 1].y, points[i + 1].z)
+        vertices.push(points[i + 2].x, points[i + 2].y, points[i + 2].z)
+      }
+      fillGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3))
+      
+      const fillMaterial = new THREE.MeshPhongMaterial({
+        color: 0x1a4d2e,
+        emissive: 0x0a1f0f,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.85,
+        flatShading: false
+      })
+      const fillMesh = new THREE.Mesh(fillGeometry, fillMaterial)
+      group.add(fillMesh)
+    }
+  }
+
   const createCurvedPath = (start: THREE.Vector3, end: THREE.Vector3): THREE.CatmullRomCurve3 => {
     const midpoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5)
     const distance = start.distanceTo(end)
@@ -437,21 +531,22 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
 
     const sphereGeometry = new THREE.SphereGeometry(2, 64, 64)
     
-    const globeMaterial = new THREE.MeshPhongMaterial({
-      color: 0x1a1a2e,
-      emissive: 0x0f0f18,
-      specular: 0x2244ff,
-      shininess: 25,
+    const oceanMaterial = new THREE.MeshPhongMaterial({
+      color: 0x0a1f3d,
+      emissive: 0x050a15,
+      specular: 0x1144aa,
+      shininess: 30,
       transparent: true,
-      opacity: 0.95
+      opacity: 0.98
     })
     
-    const globe = new THREE.Mesh(sphereGeometry, globeMaterial)
+    const globe = new THREE.Mesh(sphereGeometry, oceanMaterial)
     scene.add(globe)
     globeRef.current = globe
 
     addLatitudeLongitudeGrid(globe)
 
+    createLandmasses(globe)
     createCountryBoundaries(scene, globe)
     
     const labelsGroup = addCountryLabels(scene)
@@ -770,7 +865,20 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       }
       document.body.style.cursor = 'default'
       renderer.dispose()
-      globeMaterial.dispose()
+      if (globe) {
+        globe.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.geometry.dispose()
+            if (child.material) {
+              if (Array.isArray(child.material)) {
+                child.material.forEach(mat => mat.dispose())
+              } else {
+                child.material.dispose()
+              }
+            }
+          }
+        })
+      }
       sphereGeometry.dispose()
     }
   }, [isRotating, onThreatSelect])
