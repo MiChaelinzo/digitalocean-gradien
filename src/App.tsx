@@ -15,9 +15,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
+import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
+import { BookmarksPanel, useBookmarks } from '@/components/BookmarksPanel'
+import { ReportGenerator } from '@/components/ReportGenerator'
+import { ThreatComparison } from '@/components/ThreatComparison'
 
 interface Message {
   id: string
@@ -35,11 +39,18 @@ function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
+  const [showBookmarks, setShowBookmarks] = useState(false)
+  const [showReportGenerator, setShowReportGenerator] = useState(false)
+  const [showThreatComparison, setShowThreatComparison] = useState(false)
+  const [searchResults, setSearchResults] = useState<Message[]>([])
+  const [isSearchActive, setIsSearchActive] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const { notifications } = useThreatNotifications()
   const unacknowledgedCount = (notifications || []).filter(n => !n.dismissed && !n.acknowledged).length
+  const { bookmarks, addBookmark, isBookmarked } = useBookmarks()
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -219,7 +230,67 @@ Provide detailed military intelligence analysis with actionable recommendations.
     }
   }
 
-  const messageList = messages || []
+  const handleSearch = (query: string, filters: SearchFilters) => {
+    if (!query && filters.severity === 'all' && filters.type === 'all' && filters.dateRange === 'all') {
+      setIsSearchActive(false)
+      setSearchResults([])
+      return
+    }
+
+    const filtered = (messages || []).filter(message => {
+      const matchesQuery = !query || message.content.toLowerCase().includes(query.toLowerCase())
+      const matchesType = filters.type === 'all' || 
+                         (filters.type === 'intelligence' && message.role === 'assistant') ||
+                         (filters.type === 'threat' && message.content.toLowerCase().includes('threat'))
+      
+      return matchesQuery && matchesType
+    })
+
+    setSearchResults(filtered)
+    setIsSearchActive(true)
+    toast.success(`Found ${filtered.length} matching results`)
+  }
+
+  const mockThreats = [
+    {
+      id: 't-001',
+      name: 'Hypersonic Projectile',
+      type: 'missile',
+      severity: 'critical' as const,
+      status: 'tracking',
+      distance: 450,
+      speed: 8500,
+      altitude: 85000,
+      detected: '00:34 ago',
+      description: 'Hypersonic missile detected approaching from NNE. Speed Mach 7+, altitude 85k ft. Threat assessment: CRITICAL.'
+    },
+    {
+      id: 't-002',
+      name: 'SU-35 Fighter',
+      type: 'aircraft',
+      severity: 'high' as const,
+      status: 'engaged',
+      distance: 120,
+      speed: 1200,
+      altitude: 35000,
+      detected: '02:15 ago',
+      description: 'Enemy fighter aircraft engaged. Multi-role combat aircraft with air superiority capabilities.'
+    },
+    {
+      id: 't-003',
+      name: 'UAV Swarm (x12)',
+      type: 'drone',
+      severity: 'high' as const,
+      status: 'tracking',
+      distance: 85,
+      speed: 350,
+      altitude: 15000,
+      detected: '01:42 ago',
+      description: 'Drone swarm detected. 12 unmanned aerial vehicles coordinating approach pattern.'
+    }
+  ]
+
+  const messageList = isSearchActive ? searchResults : (messages || [])
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -237,18 +308,53 @@ Provide detailed military intelligence analysis with actionable recommendations.
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {messageList.length > 0 && (
               <>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={exportCurrentSession}
+                  onClick={() => setShowSearch(true)}
                   className="gap-2 text-xs font-mono uppercase"
-                  title="Export Session (Ctrl/Cmd+E)"
+                  title="Search Intelligence"
                 >
-                  <FileArrowDown size={16} />
-                  <span className="hidden md:inline">Export</span>
+                  <MagnifyingGlass size={16} />
+                  <span className="hidden lg:inline">Search</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBookmarks(true)}
+                  className="gap-2 text-xs font-mono uppercase relative"
+                  title="Bookmarked Intelligence"
+                >
+                  <BookmarkSimple size={16} weight={bookmarks.length > 0 ? 'fill' : 'regular'} />
+                  {bookmarks.length > 0 && (
+                    <Badge variant="secondary" className="absolute -top-2 -right-2 h-4 w-4 p-0 text-[10px] flex items-center justify-center">
+                      {bookmarks.length}
+                    </Badge>
+                  )}
+                  <span className="hidden lg:inline">Bookmarks</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowReportGenerator(true)}
+                  className="gap-2 text-xs font-mono uppercase"
+                  title="Generate Intelligence Report"
+                >
+                  <FileText size={16} />
+                  <span className="hidden lg:inline">Report</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowThreatComparison(true)}
+                  className="gap-2 text-xs font-mono uppercase"
+                  title="Compare Threats"
+                >
+                  <ArrowsLeftRight size={16} />
+                  <span className="hidden lg:inline">Compare</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -258,7 +364,7 @@ Provide detailed military intelligence analysis with actionable recommendations.
                   title="Session History (Ctrl/Cmd+H)"
                 >
                   <Clock size={16} />
-                  <span className="hidden md:inline">History</span>
+                  <span className="hidden xl:inline">History</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -267,7 +373,7 @@ Provide detailed military intelligence analysis with actionable recommendations.
                   className="gap-2 text-xs font-mono uppercase"
                 >
                   <Plus size={16} weight="bold" />
-                  <span className="hidden md:inline">New Session</span>
+                  <span className="hidden xl:inline">New Session</span>
                 </Button>
               </>
             )}
@@ -286,7 +392,7 @@ Provide detailed military intelligence analysis with actionable recommendations.
                   {unacknowledgedCount > 9 ? '9+' : unacknowledgedCount}
                 </Badge>
               )}
-              <span className="hidden md:inline">Alerts</span>
+              <span className="hidden xl:inline">Alerts</span>
             </Button>
             <Button
               variant="outline"
@@ -296,7 +402,7 @@ Provide detailed military intelligence analysis with actionable recommendations.
               title="Keyboard Shortcuts (Ctrl/Cmd+K)"
             >
               <KeyboardIcon size={16} />
-              <span className="hidden md:inline">Shortcuts</span>
+              <span className="hidden xl:inline">Shortcuts</span>
             </Button>
           </div>
         </div>
@@ -450,6 +556,41 @@ Provide detailed military intelligence analysis with actionable recommendations.
         <ThreatNotificationPanel
           isOpen={showNotifications}
           onClose={() => setShowNotifications(false)}
+        />
+      )}
+
+      {showSearch && (
+        <SearchFilter
+          onSearch={handleSearch}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+
+      {showBookmarks && (
+        <BookmarksPanel
+          isOpen={showBookmarks}
+          onClose={() => setShowBookmarks(false)}
+          onSelectBookmark={(item) => {
+            setShowBookmarks(false)
+            setActiveTab('intelligence')
+            toast.info(`Selected: ${item.title}`)
+          }}
+        />
+      )}
+
+      {showReportGenerator && (
+        <ReportGenerator
+          isOpen={showReportGenerator}
+          onClose={() => setShowReportGenerator(false)}
+          messages={messageList}
+        />
+      )}
+
+      {showThreatComparison && (
+        <ThreatComparison
+          isOpen={showThreatComparison}
+          onClose={() => setShowThreatComparison(false)}
+          threats={mockThreats}
         />
       )}
     </div>
