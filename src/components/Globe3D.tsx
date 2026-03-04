@@ -19,6 +19,17 @@ interface ThreatLocation {
   threatType: string
 }
 
+interface ThreatTrajectory {
+  id: string
+  type: 'missile' | 'aircraft' | 'drone'
+  origin: { lat: number; lng: number }
+  target: { lat: number; lng: number }
+  severity: 'critical' | 'high' | 'medium'
+  color: number
+  speed: number
+  progress: number
+}
+
 const threatLocations: ThreatLocation[] = [
   {
     id: 'gcc-iran',
@@ -94,6 +105,59 @@ const threatLocations: ThreatLocation[] = [
   }
 ]
 
+const trajectories: ThreatTrajectory[] = [
+  {
+    id: 'traj-001',
+    type: 'missile',
+    origin: { lat: 35.7, lng: 51.4 },
+    target: { lat: 32.0, lng: 35.0 },
+    severity: 'critical',
+    color: 0xff3333,
+    speed: 0.008,
+    progress: 0
+  },
+  {
+    id: 'traj-002',
+    type: 'aircraft',
+    origin: { lat: 55.0, lng: 37.6 },
+    target: { lat: 49.0, lng: 32.0 },
+    severity: 'high',
+    color: 0xffaa33,
+    speed: 0.004,
+    progress: 0
+  },
+  {
+    id: 'traj-003',
+    type: 'drone',
+    origin: { lat: 31.0, lng: 34.0 },
+    target: { lat: 32.5, lng: 35.5 },
+    severity: 'medium',
+    color: 0xffaa33,
+    speed: 0.003,
+    progress: 0
+  },
+  {
+    id: 'traj-004',
+    type: 'missile',
+    origin: { lat: 40.0, lng: 44.5 },
+    target: { lat: 49.5, lng: 31.5 },
+    severity: 'critical',
+    color: 0xff3333,
+    speed: 0.007,
+    progress: 0
+  },
+  {
+    id: 'traj-005',
+    type: 'aircraft',
+    origin: { lat: 18.0, lng: 109.0 },
+    target: { lat: 24.0, lng: 120.0 },
+    severity: 'high',
+    color: 0xffaa33,
+    speed: 0.005,
+    progress: 0
+  }
+]
+
 interface Globe3DProps {
   onThreatSelect?: (threat: ThreatLocation) => void
 }
@@ -105,12 +169,38 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const globeRef = useRef<THREE.Mesh | null>(null)
   const markersRef = useRef<THREE.Group | null>(null)
+  const trajectoriesRef = useRef<THREE.Group | null>(null)
+  const trajectoryStatesRef = useRef<Map<string, { progress: number }>>(new Map())
   const animationFrameRef = useRef<number | null>(null)
   
   const [isRotating, setIsRotating] = useState(true)
   const [selectedThreat, setSelectedThreat] = useState<string | null>(null)
   const [hoveredThreat, setHoveredThreat] = useState<ThreatLocation | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+
+  const latLngToVector3 = (lat: number, lng: number, radius: number): THREE.Vector3 => {
+    const phi = (90 - lat) * (Math.PI / 180)
+    const theta = (lng + 180) * (Math.PI / 180)
+    const x = -(radius * Math.sin(phi) * Math.cos(theta))
+    const y = radius * Math.cos(phi)
+    const z = radius * Math.sin(phi) * Math.sin(theta)
+    return new THREE.Vector3(x, y, z)
+  }
+
+  const createCurvedPath = (start: THREE.Vector3, end: THREE.Vector3): THREE.CatmullRomCurve3 => {
+    const midpoint = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5)
+    const distance = start.distanceTo(end)
+    const altitude = Math.min(distance * 0.4, 1.2)
+    midpoint.normalize().multiplyScalar(2.0 + altitude)
+    
+    const quarterPoint1 = new THREE.Vector3().addVectors(start, midpoint).multiplyScalar(0.5)
+    quarterPoint1.normalize().multiplyScalar(2.0 + altitude * 0.5)
+    
+    const quarterPoint2 = new THREE.Vector3().addVectors(midpoint, end).multiplyScalar(0.5)
+    quarterPoint2.normalize().multiplyScalar(2.0 + altitude * 0.5)
+    
+    return new THREE.CatmullRomCurve3([start, quarterPoint1, midpoint, quarterPoint2, end])
+  }
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -246,6 +336,52 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       markersGroup.add(spire)
     })
 
+    const trajectoriesGroup = new THREE.Group()
+    scene.add(trajectoriesGroup)
+    trajectoriesRef.current = trajectoriesGroup
+
+    trajectories.forEach((trajectory) => {
+      const startPos = latLngToVector3(trajectory.origin.lat, trajectory.origin.lng, 2.02)
+      const endPos = latLngToVector3(trajectory.target.lat, trajectory.target.lng, 2.02)
+      const curve = createCurvedPath(startPos, endPos)
+      
+      const points = curve.getPoints(100)
+      const geometry = new THREE.BufferGeometry().setFromPoints(points)
+      
+      const material = new THREE.LineBasicMaterial({
+        color: trajectory.color,
+        transparent: true,
+        opacity: 0.4,
+        linewidth: 2
+      })
+      
+      const line = new THREE.Line(geometry, material)
+      line.userData = { trajectoryId: trajectory.id }
+      trajectoriesGroup.add(line)
+
+      const particleGeometry = new THREE.SphereGeometry(0.02, 8, 8)
+      const particleMaterial = new THREE.MeshBasicMaterial({
+        color: trajectory.color,
+        transparent: true,
+        opacity: 1
+      })
+      const particle = new THREE.Mesh(particleGeometry, particleMaterial)
+      particle.userData = { trajectoryId: trajectory.id, curve, type: trajectory.type }
+      trajectoriesGroup.add(particle)
+
+      const glowGeometry = new THREE.SphereGeometry(0.04, 8, 8)
+      const glowMaterial = new THREE.MeshBasicMaterial({
+        color: trajectory.color,
+        transparent: true,
+        opacity: 0.3
+      })
+      const glow = new THREE.Mesh(glowGeometry, glowMaterial)
+      glow.userData = { parentParticle: particle }
+      trajectoriesGroup.add(glow)
+
+      trajectoryStatesRef.current.set(trajectory.id, { progress: 0 })
+    })
+
     const raycaster = new THREE.Raycaster()
     const mouse = new THREE.Vector2()
 
@@ -301,6 +437,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         if (markersGroup) {
           markersGroup.rotation.y += 0.001
         }
+        if (trajectoriesGroup) {
+          trajectoriesGroup.rotation.y += 0.001
+        }
       }
 
       markersGroup.children.forEach((child: THREE.Object3D) => {
@@ -308,6 +447,31 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           child.userData.animate()
         }
       })
+
+      if (trajectoriesGroup) {
+        trajectoriesGroup.children.forEach((child: THREE.Object3D) => {
+          if (child.userData.curve && child.userData.trajectoryId) {
+            const state = trajectoryStatesRef.current.get(child.userData.trajectoryId)
+            if (state) {
+              const trajectory = trajectories.find(t => t.id === child.userData.trajectoryId)
+              if (trajectory) {
+                state.progress += trajectory.speed
+                if (state.progress > 1) {
+                  state.progress = 0
+                }
+                
+                const position = child.userData.curve.getPoint(state.progress)
+                child.position.copy(position)
+              }
+            }
+          }
+          
+          if (child.userData.parentParticle) {
+            const parent = child.userData.parentParticle
+            child.position.copy(parent.position)
+          }
+        })
+      }
 
       renderer.render(scene, camera)
     }
@@ -349,6 +513,12 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       globeRef.current.rotation.y = 0
       markersRef.current.rotation.y = 0
     }
+    if (trajectoriesRef.current) {
+      trajectoriesRef.current.rotation.y = 0
+    }
+    trajectoryStatesRef.current.forEach((state) => {
+      state.progress = 0
+    })
   }
 
   const getSeverityColor = (severity: string) => {
@@ -375,7 +545,10 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       <Card className="relative overflow-hidden bg-card/50 backdrop-blur-sm">
         <div className="absolute top-4 left-4 z-10 flex gap-2">
           <Badge variant="outline" className="bg-background/80 backdrop-blur-sm font-mono text-xs uppercase">
-            3D Threat Globe - Live
+            3D Globe - Live Trajectories
+          </Badge>
+          <Badge variant="outline" className="bg-destructive/20 text-destructive border-destructive/50 font-mono text-xs uppercase">
+            {trajectories.length} Active Paths
           </Badge>
         </div>
 
