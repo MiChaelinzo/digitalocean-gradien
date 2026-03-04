@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning, Rocket, BookOpen } from '@phosphor-icons/react'
+import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning, Rocket, BookOpen, MapPin, MapPinLine } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DropdownMenu,
@@ -152,6 +152,75 @@ const missileTrajectories: MissileTrajectory[] = [
   }
 ]
 
+interface CityMarker {
+  id: string
+  name: string
+  country: string
+  lat: number
+  lng: number
+  type: 'capital' | 'major' | 'strategic'
+  population?: string
+}
+
+const majorCities: CityMarker[] = [
+  { id: 'washington', name: 'Washington D.C.', country: 'USA', lat: 38.9072, lng: -77.0369, type: 'capital' },
+  { id: 'moscow', name: 'Moscow', country: 'Russia', lat: 55.7558, lng: 37.6173, type: 'capital' },
+  { id: 'beijing', name: 'Beijing', country: 'China', lat: 39.9042, lng: 116.4074, type: 'capital' },
+  { id: 'tehran', name: 'Tehran', country: 'Iran', lat: 35.6892, lng: 51.3890, type: 'capital' },
+  { id: 'jerusalem', name: 'Jerusalem', country: 'Israel', lat: 31.7683, lng: 35.2137, type: 'capital' },
+  { id: 'kyiv', name: 'Kyiv', country: 'Ukraine', lat: 50.4501, lng: 30.5234, type: 'capital' },
+  { id: 'seoul', name: 'Seoul', country: 'South Korea', lat: 37.5665, lng: 126.9780, type: 'capital' },
+  { id: 'pyongyang', name: 'Pyongyang', country: 'North Korea', lat: 39.0392, lng: 125.7625, type: 'capital' },
+  { id: 'taipei', name: 'Taipei', country: 'Taiwan', lat: 25.0330, lng: 121.5654, type: 'capital' },
+  { id: 'tokyo', name: 'Tokyo', country: 'Japan', lat: 35.6762, lng: 139.6503, type: 'capital' },
+  { id: 'london', name: 'London', country: 'UK', lat: 51.5074, lng: -0.1278, type: 'capital' },
+  { id: 'paris', name: 'Paris', country: 'France', lat: 48.8566, lng: 2.3522, type: 'capital' },
+  { id: 'berlin', name: 'Berlin', country: 'Germany', lat: 52.5200, lng: 13.4050, type: 'capital' },
+  { id: 'riyadh', name: 'Riyadh', country: 'Saudi Arabia', lat: 24.7136, lng: 46.6753, type: 'capital' },
+  { id: 'dubai', name: 'Dubai', country: 'UAE', lat: 25.2048, lng: 55.2708, type: 'strategic' },
+  { id: 'istanbul', name: 'Istanbul', country: 'Turkey', lat: 41.0082, lng: 28.9784, type: 'strategic' },
+  { id: 'cairo', name: 'Cairo', country: 'Egypt', lat: 30.0444, lng: 31.2357, type: 'capital' },
+  { id: 'mumbai', name: 'Mumbai', country: 'India', lat: 19.0760, lng: 72.8777, type: 'major' },
+  { id: 'delhi', name: 'New Delhi', country: 'India', lat: 28.6139, lng: 77.2090, type: 'capital' },
+  { id: 'singapore', name: 'Singapore', country: 'Singapore', lat: 1.3521, lng: 103.8198, type: 'capital' },
+  { id: 'sydney', name: 'Sydney', country: 'Australia', lat: -33.8688, lng: 151.2093, type: 'major' },
+  { id: 'brasilia', name: 'Brasília', country: 'Brazil', lat: -15.8267, lng: -47.9218, type: 'capital' },
+  { id: 'havana', name: 'Havana', country: 'Cuba', lat: 23.1136, lng: -82.3666, type: 'capital' },
+  { id: 'mexico-city', name: 'Mexico City', country: 'Mexico', lat: 19.4326, lng: -99.1332, type: 'capital' },
+  { id: 'ottawa', name: 'Ottawa', country: 'Canada', lat: 45.4215, lng: -75.6972, type: 'capital' }
+]
+
+interface CountryLabel {
+  id: string
+  name: string
+  lat: number
+  lng: number
+  code: string
+}
+
+const countryLabels: CountryLabel[] = [
+  { id: 'usa', name: 'UNITED STATES', lat: 39.8283, lng: -98.5795, code: 'US' },
+  { id: 'russia', name: 'RUSSIA', lat: 61.5240, lng: 105.3188, code: 'RU' },
+  { id: 'china', name: 'CHINA', lat: 35.8617, lng: 104.1954, code: 'CN' },
+  { id: 'india', name: 'INDIA', lat: 20.5937, lng: 78.9629, code: 'IN' },
+  { id: 'brazil', name: 'BRAZIL', lat: -14.2350, lng: -51.9253, code: 'BR' },
+  { id: 'australia', name: 'AUSTRALIA', lat: -25.2744, lng: 133.7751, code: 'AU' },
+  { id: 'canada', name: 'CANADA', lat: 56.1304, lng: -106.3468, code: 'CA' },
+  { id: 'iran', name: 'IRAN', lat: 32.4279, lng: 53.6880, code: 'IR' },
+  { id: 'saudi', name: 'SAUDI ARABIA', lat: 23.8859, lng: 45.0792, code: 'SA' },
+  { id: 'egypt', name: 'EGYPT', lat: 26.8206, lng: 30.8025, code: 'EG' },
+  { id: 'turkey', name: 'TURKEY', lat: 38.9637, lng: 35.2433, code: 'TR' },
+  { id: 'ukraine', name: 'UKRAINE', lat: 48.3794, lng: 31.1656, code: 'UA' },
+  { id: 'france', name: 'FRANCE', lat: 46.2276, lng: 2.2137, code: 'FR' },
+  { id: 'germany', name: 'GERMANY', lat: 51.1657, lng: 10.4515, code: 'DE' },
+  { id: 'uk', name: 'UNITED KINGDOM', lat: 55.3781, lng: -3.4360, code: 'GB' },
+  { id: 'japan', name: 'JAPAN', lat: 36.2048, lng: 138.2529, code: 'JP' },
+  { id: 'skorea', name: 'SOUTH KOREA', lat: 35.9078, lng: 127.7669, code: 'KR' },
+  { id: 'nkorea', name: 'NORTH KOREA', lat: 40.3399, lng: 127.5101, code: 'KP' },
+  { id: 'mexico', name: 'MEXICO', lat: 23.6345, lng: -102.5528, code: 'MX' },
+  { id: 'indonesia', name: 'INDONESIA', lat: -0.7893, lng: 113.9213, code: 'ID' }
+]
+
 interface Globe3DProps {
   onThreatSelect?: (threat: ThreatLocation) => void
 }
@@ -160,15 +229,20 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const markersRef = useRef<mapboxgl.Marker[]>([])
+  const cityMarkersRef = useRef<mapboxgl.Marker[]>([])
+  const countryLabelsRef = useRef<mapboxgl.Marker[]>([])
   
   const [selectedThreat, setSelectedThreat] = useState<string | null>(null)
   const [hoveredThreat, setHoveredThreat] = useState<ThreatLocation | null>(null)
+  const [hoveredCity, setHoveredCity] = useState<CityMarker | null>(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
   const [is3D, setIs3D] = useState(true)
   const [mapStyle, setMapStyle] = useState<'dark' | 'satellite' | 'terrain'>('satellite')
   const [weatherLayers, setWeatherLayers] = useState<Set<string>>(new Set())
   const [showTrajectories, setShowTrajectories] = useState(true)
   const [showLegend, setShowLegend] = useState(false)
+  const [showCities, setShowCities] = useState(true)
+  const [showCountries, setShowCountries] = useState(true)
   
   type WeatherLayerType = 'precipitation' | 'wind' | 'temperature' | 'clouds'
 
@@ -401,6 +475,109 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       markersRef.current.push(marker)
     })
 
+    if (showCities) {
+      majorCities.forEach((city) => {
+        const el = document.createElement('div')
+        el.className = 'city-marker'
+        el.style.position = 'relative'
+        el.style.cursor = 'pointer'
+        
+        const dot = document.createElement('div')
+        dot.style.width = city.type === 'capital' ? '8px' : '6px'
+        dot.style.height = city.type === 'capital' ? '8px' : '6px'
+        dot.style.borderRadius = '50%'
+        dot.style.backgroundColor = city.type === 'capital' ? '#ffffff' : '#aaccff'
+        dot.style.border = city.type === 'capital' ? '2px solid #4488ff' : '1.5px solid #6699ff'
+        dot.style.boxShadow = city.type === 'capital' ? '0 0 10px rgba(68, 136, 255, 0.6)' : '0 0 6px rgba(102, 153, 255, 0.4)'
+        dot.style.transition = 'all 0.3s ease'
+        dot.style.zIndex = '5'
+        
+        const label = document.createElement('div')
+        label.textContent = city.name
+        label.style.position = 'absolute'
+        label.style.top = city.type === 'capital' ? '12px' : '10px'
+        label.style.left = '50%'
+        label.style.transform = 'translateX(-50%)'
+        label.style.whiteSpace = 'nowrap'
+        label.style.fontSize = city.type === 'capital' ? '10px' : '9px'
+        label.style.fontFamily = 'JetBrains Mono, monospace'
+        label.style.fontWeight = city.type === 'capital' ? '600' : '500'
+        label.style.color = '#ffffff'
+        label.style.textShadow = '0 0 4px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.6)'
+        label.style.pointerEvents = 'none'
+        label.style.opacity = '0.85'
+        label.style.letterSpacing = '0.02em'
+        
+        el.appendChild(dot)
+        el.appendChild(label)
+
+        el.addEventListener('mouseenter', (e) => {
+          setHoveredCity(city)
+          setMousePos({ x: e.clientX, y: e.clientY })
+          dot.style.transform = 'scale(1.5)'
+          dot.style.boxShadow = city.type === 'capital' 
+            ? '0 0 18px rgba(68, 136, 255, 1)' 
+            : '0 0 12px rgba(102, 153, 255, 0.8)'
+          label.style.opacity = '1'
+          label.style.fontWeight = '700'
+        })
+
+        el.addEventListener('mouseleave', () => {
+          setHoveredCity(null)
+          dot.style.transform = 'scale(1)'
+          dot.style.boxShadow = city.type === 'capital' 
+            ? '0 0 10px rgba(68, 136, 255, 0.6)' 
+            : '0 0 6px rgba(102, 153, 255, 0.4)'
+          label.style.opacity = '0.85'
+          label.style.fontWeight = city.type === 'capital' ? '600' : '500'
+        })
+
+        el.addEventListener('click', () => {
+          if (mapRef.current) {
+            mapRef.current.flyTo({
+              center: [city.lng, city.lat],
+              zoom: 8,
+              pitch: 50,
+              duration: 2000
+            })
+          }
+        })
+
+        const cityMarker = new mapboxgl.Marker(el)
+          .setLngLat([city.lng, city.lat])
+          .addTo(map)
+
+        cityMarkersRef.current.push(cityMarker)
+      })
+    }
+
+    if (showCountries) {
+      countryLabels.forEach((country) => {
+        const el = document.createElement('div')
+        el.className = 'country-label'
+        el.textContent = country.name
+        el.style.fontSize = '11px'
+        el.style.fontFamily = 'Space Grotesk, sans-serif'
+        el.style.fontWeight = '700'
+        el.style.color = '#6699ff'
+        el.style.textShadow = '0 0 8px rgba(0, 0, 0, 0.9), 0 2px 4px rgba(0, 0, 0, 0.7)'
+        el.style.letterSpacing = '0.15em'
+        el.style.pointerEvents = 'none'
+        el.style.opacity = '0.7'
+        el.style.whiteSpace = 'nowrap'
+        el.style.padding = '2px 6px'
+        el.style.borderRadius = '3px'
+        el.style.backgroundColor = 'rgba(0, 0, 0, 0.3)'
+        el.style.backdropFilter = 'blur(4px)'
+        
+        const countryMarker = new mapboxgl.Marker(el)
+          .setLngLat([country.lng, country.lat])
+          .addTo(map)
+
+        countryLabelsRef.current.push(countryMarker)
+      })
+    }
+
     const createCurvedPath = (from: [number, number], to: [number, number], arcHeight: number = 0.2) => {
       const steps = 100
       const path: [number, number][] = []
@@ -570,12 +747,16 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       animationFrames.forEach(frame => cancelAnimationFrame(frame))
       markersRef.current.forEach(marker => marker.remove())
       markersRef.current = []
+      cityMarkersRef.current.forEach(marker => marker.remove())
+      cityMarkersRef.current = []
+      countryLabelsRef.current.forEach(marker => marker.remove())
+      countryLabelsRef.current = []
       if (map) {
         map.remove()
       }
       mapRef.current = null
     }
-  }, [is3D, mapStyle, onThreatSelect, showTrajectories])
+  }, [is3D, mapStyle, onThreatSelect, showTrajectories, showCities, showCountries])
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -728,6 +909,16 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           <Badge variant="outline" className="bg-primary/20 text-primary border-primary/50 font-mono text-xs uppercase">
             {threatLocations.length} Threats
           </Badge>
+          {showCities && (
+            <Badge variant="outline" className="bg-primary/20 text-primary border-primary/50 font-mono text-xs uppercase">
+              {majorCities.length} Cities
+            </Badge>
+          )}
+          {showCountries && (
+            <Badge variant="outline" className="bg-primary/20 text-primary border-primary/50 font-mono text-xs uppercase">
+              {countryLabels.length} Countries
+            </Badge>
+          )}
           {showTrajectories && (
             <Badge variant="outline" className="bg-accent/20 text-accent border-accent/50 font-mono text-xs uppercase">
               {missileTrajectories.length} Active Trajectories
@@ -750,6 +941,26 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           >
             <BookOpen size={16} weight={showLegend ? 'fill' : 'regular'} />
             <span className="hidden sm:inline text-xs font-mono">Legend</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowCities(!showCities)}
+            className={`bg-background/80 backdrop-blur-sm gap-2 ${showCities ? 'border-primary text-primary' : ''}`}
+            title={showCities ? "Hide City Markers" : "Show City Markers"}
+          >
+            <MapPin size={16} weight={showCities ? 'fill' : 'regular'} />
+            <span className="hidden sm:inline text-xs font-mono">Cities</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowCountries(!showCountries)}
+            className={`bg-background/80 backdrop-blur-sm gap-2 ${showCountries ? 'border-primary text-primary' : ''}`}
+            title={showCountries ? "Hide Country Labels" : "Show Country Labels"}
+          >
+            <MapPinLine size={16} weight={showCountries ? 'fill' : 'regular'} />
+            <span className="hidden sm:inline text-xs font-mono">Countries</span>
           </Button>
           <Button
             size="sm"
@@ -911,6 +1122,35 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               <p className="text-xs text-foreground/80 leading-relaxed">
                 {hoveredThreat.description}
               </p>
+            </motion.div>
+          )}
+          {hoveredCity && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
+              className="absolute pointer-events-none z-20 bg-card/95 backdrop-blur-md border border-primary/50 rounded-lg p-3 shadow-lg"
+              style={{
+                left: mousePos.x + 15,
+                top: mousePos.y - 50,
+                maxWidth: '220px'
+              }}
+            >
+              <div className="flex items-start gap-2">
+                <MapPin size={16} weight="fill" className="text-primary mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm uppercase tracking-wide mb-0.5">
+                    {hoveredCity.name}
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground font-mono mb-1">
+                    {hoveredCity.country}
+                  </p>
+                  <Badge className="text-[10px] font-mono uppercase px-1.5 py-0 bg-primary/20 text-primary border-primary/30">
+                    {hoveredCity.type === 'capital' ? 'Capital' : hoveredCity.type === 'strategic' ? 'Strategic' : 'Major City'}
+                  </Badge>
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
