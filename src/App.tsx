@@ -33,7 +33,12 @@ import { AdvancedExport } from '@/components/AdvancedExport'
 import { SystemHealth } from '@/components/SystemHealth'
 import { DashboardCustomization } from '@/components/DashboardCustomization'
 import { ChatSuggestions } from '@/components/ChatSuggestions'
+import { LandingPage } from '@/components/LandingPage'
+import { LoginPage } from '@/components/LoginPage'
+import { SignupPage, type SignupData } from '@/components/SignupPage'
+import { OnboardingFlow } from '@/components/OnboardingFlow'
 import type { Asset } from '@/types/assets'
+import type { AuthState, User } from '@/types/auth'
 
 interface Message {
   id: string
@@ -43,6 +48,13 @@ interface Message {
 }
 
 function App() {
+  const [authState, setAuthState] = useKV<AuthState>('auth-state', {
+    isAuthenticated: false,
+    user: null,
+    hasCompletedOnboarding: false
+  })
+  const [authView, setAuthView] = useState<'landing' | 'login' | 'signup'>('landing')
+  
   const [messages, setMessages] = useKV<Message[]>('intel-messages', [])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -325,6 +337,97 @@ File details:
 Provide detailed intelligence briefing based on visual analysis.`
 
     await handleSendMessage(prompt)
+  }
+
+  const handleLogin = (email: string, password: string) => {
+    const user: User = {
+      id: `user-${Date.now()}`,
+      email,
+      fullName: 'Military Analyst',
+      role: 'analyst',
+      clearanceLevel: 'secret',
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    }
+    
+    setAuthState({
+      isAuthenticated: true,
+      user,
+      hasCompletedOnboarding: false
+    })
+    
+    toast.success(`Welcome back, ${user.fullName}`)
+  }
+
+  const handleSignup = (userData: SignupData) => {
+    const user: User = {
+      id: `user-${Date.now()}`,
+      email: userData.email,
+      fullName: userData.fullName,
+      organization: userData.organization,
+      role: userData.role,
+      clearanceLevel: userData.clearanceLevel,
+      createdAt: new Date().toISOString()
+    }
+    
+    setAuthState({
+      isAuthenticated: true,
+      user,
+      hasCompletedOnboarding: false
+    })
+    
+    toast.success('Access request approved. Welcome to SENTINEL.')
+  }
+
+  const handleOnboardingComplete = () => {
+    setAuthState(current => ({
+      isAuthenticated: current?.isAuthenticated ?? true,
+      user: current?.user ?? null,
+      hasCompletedOnboarding: true
+    }))
+    
+    toast.success('Onboarding complete. System ready.')
+  }
+
+  if (!authState || !authState.isAuthenticated) {
+    if (authView === 'landing') {
+      return (
+        <LandingPage
+          onGetStarted={() => setAuthView('signup')}
+          onLogin={() => setAuthView('login')}
+        />
+      )
+    }
+    
+    if (authView === 'login') {
+      return (
+        <LoginPage
+          onLogin={handleLogin}
+          onBack={() => setAuthView('landing')}
+          onSignupClick={() => setAuthView('signup')}
+        />
+      )
+    }
+    
+    if (authView === 'signup') {
+      return (
+        <SignupPage
+          onSignup={handleSignup}
+          onBack={() => setAuthView('landing')}
+          onLoginClick={() => setAuthView('login')}
+        />
+      )
+    }
+  }
+
+  if (authState && authState.isAuthenticated && !authState.hasCompletedOnboarding) {
+    return (
+      <OnboardingFlow
+        onComplete={handleOnboardingComplete}
+        userName={authState.user?.fullName || 'User'}
+        userRole={authState.user?.role.replace('-', ' ') || 'Analyst'}
+      />
+    )
   }
 
   const mockThreats = [
