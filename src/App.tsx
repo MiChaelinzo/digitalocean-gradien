@@ -350,11 +350,12 @@ Provide detailed intelligence briefing based on visual analysis.`
       lastLogin: new Date().toISOString()
     }
     
-    setAuthState({
+    setAuthState((currentState) => ({
+      ...currentState,
       isAuthenticated: true,
       user,
       hasCompletedOnboarding: false
-    })
+    }))
     
     toast.success(`Welcome back, ${user.fullName}`)
   }
@@ -370,19 +371,21 @@ Provide detailed intelligence briefing based on visual analysis.`
       createdAt: new Date().toISOString()
     }
     
-    setAuthState({
+    setAuthState((currentState) => ({
+      ...currentState,
       isAuthenticated: true,
       user,
       hasCompletedOnboarding: false
-    })
+    }))
     
     toast.success('Access request approved. Welcome to SENTINEL.')
   }
 
   const handleOnboardingComplete = () => {
-    setAuthState(current => ({
-      isAuthenticated: current?.isAuthenticated ?? true,
-      user: current?.user ?? null,
+    setAuthState((currentState) => ({
+      ...currentState,
+      isAuthenticated: true,
+      user: currentState?.user ?? null,
       hasCompletedOnboarding: true
     }))
     
