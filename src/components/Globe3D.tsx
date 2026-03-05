@@ -4,7 +4,7 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning, Rocket, BookOpen, MapPin, MapPinLine } from '@phosphor-icons/react'
+import { ArrowsClockwise, Warning, Target, Crosshair, Globe as GlobeIcon, MagnifyingGlassMinus, MagnifyingGlassPlus, Cube, MapTrifold, Planet, CloudRain, Wind, CloudSnow, Lightning, Rocket, BookOpen, MapPin, MapPinLine, Eye, Thermometer, Broadcast } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
+import { Slider } from '@/components/ui/slider'
 import { TrajectoryLegend } from '@/components/TrajectoryLegend'
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw'
@@ -246,6 +247,8 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
   const [showLegend, setShowLegend] = useState(false)
   const [showCities, setShowCities] = useState(true)
   const [showCountries, setShowCountries] = useState(true)
+  const [satelliteImageryType, setSatelliteImageryType] = useState<'standard' | 'live' | 'infrared' | 'radar'>('standard')
+  const [satelliteOpacity, setSatelliteOpacity] = useState(1.0)
   
   type WeatherLayerType = 'precipitation' | 'wind' | 'temperature' | 'clouds'
 
@@ -773,7 +776,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
       }
       mapRef.current = null
     }
-  }, [is3D, mapStyle, onThreatSelect, showTrajectories, showCities, showCountries])
+  }, [is3D, mapStyle, onThreatSelect, showTrajectories, showCities, showCountries, satelliteImageryType, satelliteOpacity])
 
   useEffect(() => {
     if (!mapRef.current) return
@@ -837,6 +840,70 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
     }
   }, [weatherLayers])
 
+  useEffect(() => {
+    if (!mapRef.current || mapStyle !== 'satellite') return
+    
+    const map = mapRef.current
+
+    const updateSatelliteImagery = () => {
+      if (!map || !mapRef.current || !map.isStyleLoaded()) return
+
+      try {
+        const layerId = 'satellite-overlay-layer'
+        const sourceId = 'satellite-overlay-source'
+        
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId)
+        }
+        if (map.getSource(sourceId)) {
+          map.removeSource(sourceId)
+        }
+
+        if (satelliteImageryType !== 'standard') {
+          let tileUrl = ''
+          
+          switch (satelliteImageryType) {
+            case 'live':
+              tileUrl = 'mapbox://styles/mapbox/satellite-v9'
+              break
+            case 'infrared':
+              tileUrl = 'https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/{time}/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg'
+              break
+            case 'radar':
+              tileUrl = 'https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=demo'
+              break
+          }
+
+          if (satelliteImageryType === 'infrared' || satelliteImageryType === 'radar') {
+            map.addSource(sourceId, {
+              type: 'raster',
+              tiles: [tileUrl],
+              tileSize: 256
+            })
+
+            map.addLayer({
+              id: layerId,
+              type: 'raster',
+              source: sourceId,
+              paint: {
+                'raster-opacity': satelliteOpacity,
+                'raster-fade-duration': 300
+              }
+            })
+          }
+        }
+      } catch (error) {
+        console.warn('Error updating satellite imagery:', error)
+      }
+    }
+
+    if (map.isStyleLoaded()) {
+      updateSatelliteImagery()
+    } else {
+      map.once('style.load', updateSatelliteImagery)
+    }
+  }, [satelliteImageryType, satelliteOpacity, mapStyle])
+
   const getWeatherTileUrl = (type: WeatherLayerType): string => {
     const baseUrl = 'https://tile.openweathermap.org/map'
     const appid = 'demo'
@@ -850,6 +917,24 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
         return `${baseUrl}/temp_new/{z}/{x}/{y}.png?appid=${appid}`
       case 'clouds':
         return `${baseUrl}/clouds_new/{z}/{x}/{y}.png?appid=${appid}`
+    }
+  }
+
+  const getSatelliteImageryLabel = (type: 'standard' | 'live' | 'infrared' | 'radar') => {
+    switch (type) {
+      case 'standard': return 'Standard Satellite'
+      case 'live': return 'Live Feed'
+      case 'infrared': return 'Infrared'
+      case 'radar': return 'Radar Imagery'
+    }
+  }
+
+  const getSatelliteImageryIcon = (type: 'standard' | 'live' | 'infrared' | 'radar') => {
+    switch (type) {
+      case 'standard': return Planet
+      case 'live': return Broadcast
+      case 'infrared': return Thermometer
+      case 'radar': return Eye
     }
   }
 
@@ -944,6 +1029,11 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           {weatherLayers.size > 0 && (
             <Badge variant="outline" className="bg-accent/20 text-accent border-accent/50 font-mono text-xs uppercase">
               {weatherLayers.size} Weather Layer{weatherLayers.size > 1 ? 's' : ''} Active
+            </Badge>
+          )}
+          {satelliteImageryType !== 'standard' && mapStyle === 'satellite' && (
+            <Badge variant="outline" className="bg-accent/20 text-accent border-accent/50 font-mono text-xs uppercase">
+              {getSatelliteImageryLabel(satelliteImageryType)} Active
             </Badge>
           )}
         </div>
@@ -1061,6 +1151,54 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
                 <MapTrifold size={16} weight={mapStyle === 'terrain' ? 'fill' : 'regular'} className="mr-2" />
                 <span className="font-mono text-xs">Terrain</span>
               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className={`bg-background/80 backdrop-blur-sm gap-2 ${satelliteImageryType !== 'standard' ? 'border-accent text-accent' : ''}`}
+                title="Satellite Imagery Type"
+              >
+                <Planet size={16} weight={satelliteImageryType !== 'standard' ? 'fill' : 'regular'} />
+                <span className="hidden md:inline text-xs font-mono">Satellite</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-md w-56">
+              <DropdownMenuLabel className="font-mono text-xs text-muted-foreground uppercase">
+                Satellite Imagery
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {(['standard', 'live', 'infrared', 'radar'] as const).map((type) => {
+                const Icon = getSatelliteImageryIcon(type)
+                const isActive = satelliteImageryType === type
+                return (
+                  <DropdownMenuItem
+                    key={type}
+                    onClick={() => setSatelliteImageryType(type)}
+                    className={isActive ? 'bg-primary/20 text-primary' : ''}
+                  >
+                    <Icon size={16} weight={isActive ? 'fill' : 'regular'} className="mr-2" />
+                    <span className="font-mono text-xs">{getSatelliteImageryLabel(type)}</span>
+                  </DropdownMenuItem>
+                )
+              })}
+              <DropdownMenuSeparator />
+              <div className="px-2 py-3">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-mono text-muted-foreground uppercase">Opacity</label>
+                  <span className="text-xs font-mono font-bold">{Math.round(satelliteOpacity * 100)}%</span>
+                </div>
+                <Slider
+                  value={[satelliteOpacity]}
+                  onValueChange={(value) => setSatelliteOpacity(value[0])}
+                  min={0.1}
+                  max={1.0}
+                  step={0.1}
+                  className="w-full"
+                />
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
