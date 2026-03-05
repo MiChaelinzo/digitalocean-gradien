@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Checkbox } from '@/components/ui/checkbox'
 import { queryAISimple } from '@/lib/ai-service'
 import { 
   Clock, 
@@ -17,7 +19,10 @@ import {
   Sparkle,
   CaretRight,
   ChartLine,
-  WarningCircle
+  WarningCircle,
+  MapPin,
+  FunnelSimple,
+  X
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
@@ -39,24 +44,61 @@ interface PredictionScenario {
 
 interface ThreatPredictionTimelineProps {
   threatContext?: string
-  regionFilter?: string[]
 }
 
-export function ThreatPredictionTimeline({ threatContext, regionFilter }: ThreatPredictionTimelineProps) {
+const GEOGRAPHIC_REGIONS = [
+  { id: 'middle-east', name: 'Middle East', subregions: ['Persian Gulf', 'Israel', 'Iran', 'GCC States', 'Syria', 'Iraq', 'Yemen'] },
+  { id: 'east-asia', name: 'East Asia', subregions: ['Taiwan Strait', 'South China Sea', 'Korean Peninsula', 'Japan', 'Philippines'] },
+  { id: 'europe', name: 'Europe', subregions: ['Ukraine', 'Baltic States', 'Black Sea', 'Eastern Europe', 'Mediterranean'] },
+  { id: 'indo-pacific', name: 'Indo-Pacific', subregions: ['India', 'Pakistan', 'Afghanistan', 'Myanmar', 'Indonesia'] },
+  { id: 'americas', name: 'Americas', subregions: ['Cuba', 'Venezuela', 'Colombia', 'Mexico', 'Caribbean'] },
+  { id: 'africa', name: 'Africa', subregions: ['North Africa', 'Sahel Region', 'Horn of Africa', 'Central Africa', 'Red Sea'] },
+]
+
+export function ThreatPredictionTimeline({ threatContext }: ThreatPredictionTimelineProps) {
   const [predictions, setPredictions] = useState<PredictionScenario[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null)
   const [analysisDepth, setAnalysisDepth] = useState<'basic' | 'detailed' | 'comprehensive'>('detailed')
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   useEffect(() => {
     generatePredictions()
-  }, [threatContext, regionFilter, analysisDepth])
+  }, [threatContext, selectedRegions, analysisDepth])
+
+  const toggleRegion = (regionId: string) => {
+    setSelectedRegions(current => 
+      current.includes(regionId)
+        ? current.filter(r => r !== regionId)
+        : [...current, regionId]
+    )
+  }
+
+  const clearAllRegions = () => {
+    setSelectedRegions([])
+    toast.info('All region filters cleared')
+  }
+
+  const getSelectedRegionNames = (): string[] => {
+    if (selectedRegions.length === 0) return []
+    
+    const names: string[] = []
+    GEOGRAPHIC_REGIONS.forEach(region => {
+      if (selectedRegions.includes(region.id)) {
+        names.push(region.name)
+        names.push(...region.subregions)
+      }
+    })
+    return names
+  }
 
   const generatePredictions = async () => {
     setIsLoading(true)
     try {
       const contextInfo = threatContext || 'current global military tensions and active conflicts'
-      const regions = regionFilter && regionFilter.length > 0 ? regionFilter.join(', ') : 'all monitored regions'
+      const regionNames = getSelectedRegionNames()
+      const regions = regionNames.length > 0 ? regionNames.join(', ') : 'all monitored regions'
       
       const prompt = `You are a military intelligence AI analyzing future threat scenarios. Generate exactly 5 realistic threat prediction scenarios for the next 72 hours.
 
@@ -182,7 +224,95 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Popover open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-2 text-xs font-mono uppercase relative"
+                  >
+                    <FunnelSimple size={16} weight={selectedRegions.length > 0 ? 'fill' : 'regular'} />
+                    Region Filter
+                    {selectedRegions.length > 0 && (
+                      <Badge className="ml-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px]">
+                        {selectedRegions.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="p-4 border-b border-border">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-bold font-mono uppercase">Geographic Focus</h4>
+                      {selectedRegions.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={clearAllRegions}
+                          className="h-6 px-2 text-xs gap-1"
+                        >
+                          <X size={12} />
+                          Clear
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Select regions to focus threat predictions
+                    </p>
+                  </div>
+                  <ScrollArea className="h-[400px]">
+                    <div className="p-4 space-y-4">
+                      {GEOGRAPHIC_REGIONS.map((region) => (
+                        <div key={region.id} className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              id={region.id}
+                              checked={selectedRegions.includes(region.id)}
+                              onCheckedChange={() => toggleRegion(region.id)}
+                            />
+                            <label
+                              htmlFor={region.id}
+                              className="text-sm font-semibold cursor-pointer flex items-center gap-2"
+                            >
+                              <MapPin size={14} weight="fill" className="text-primary" />
+                              {region.name}
+                            </label>
+                          </div>
+                          <div className="ml-6 flex flex-wrap gap-1">
+                            {region.subregions.map((sub) => (
+                              <Badge
+                                key={sub}
+                                variant="secondary"
+                                className="text-[10px] font-mono"
+                              >
+                                {sub}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                  <div className="p-3 border-t border-border bg-muted/30">
+                    <Button
+                      onClick={() => {
+                        setIsFilterOpen(false)
+                        if (selectedRegions.length > 0) {
+                          toast.success(`Filtering predictions for ${selectedRegions.length} region${selectedRegions.length > 1 ? 's' : ''}`)
+                        }
+                      }}
+                      size="sm"
+                      className="w-full text-xs font-mono uppercase"
+                    >
+                      Apply Filter
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+              
+              <Separator orientation="vertical" className="h-8" />
+              
               <Button
                 variant={analysisDepth === 'basic' ? 'default' : 'outline'}
                 size="sm"
@@ -207,7 +337,9 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
               >
                 Comprehensive
               </Button>
-              <Separator orientation="vertical" className="h-8 mx-1" />
+              
+              <Separator orientation="vertical" className="h-8" />
+              
               <Button
                 variant="outline"
                 size="sm"
@@ -223,6 +355,24 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
         </CardHeader>
 
         <CardContent>
+          {selectedRegions.length > 0 && (
+            <div className="mb-4 flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-mono text-muted-foreground uppercase">Active Filters:</span>
+              {GEOGRAPHIC_REGIONS.filter(r => selectedRegions.includes(r.id)).map(region => (
+                <Badge
+                  key={region.id}
+                  variant="default"
+                  className="gap-1.5 text-xs font-mono cursor-pointer hover:bg-primary/80"
+                  onClick={() => toggleRegion(region.id)}
+                >
+                  <MapPin size={12} weight="fill" />
+                  {region.name}
+                  <X size={12} weight="bold" />
+                </Badge>
+              ))}
+            </div>
+          )}
+          
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3, 4, 5].map((i) => (
