@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
-import { Shield, Warning, Airplane, Rocket, Target, Eye, LockKey } from '@phosphor-icons/react'
+import { Shield, Warning, Airplane, Rocket, Target, Eye, LockKey, ShieldWarning, WarningCircle, CheckCircle } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
 import type { ReactElement } from 'react'
 
@@ -84,9 +84,11 @@ const activeThreats: ThreatItem[] = [
 ]
 
 type ThreatType = 'all' | 'missile' | 'aircraft' | 'drone' | 'uap' | 'cyber'
+type SeverityLevel = 'all' | 'critical' | 'high' | 'medium' | 'low'
 
 export function ThreatDashboard() {
   const [selectedFilter, setSelectedFilter] = useState<ThreatType>('all')
+  const [selectedSeverity, setSelectedSeverity] = useState<SeverityLevel>('all')
 
   const getThreatIcon = (type: string, size = 20) => {
     switch (type) {
@@ -125,9 +127,11 @@ export function ThreatDashboard() {
     return Math.min(100, (baseLevel + distanceFactor) / 2)
   }
 
-  const filteredThreats = selectedFilter === 'all' 
-    ? activeThreats 
-    : activeThreats.filter(t => t.type === selectedFilter)
+  const filteredThreats = activeThreats.filter(threat => {
+    const matchesType = selectedFilter === 'all' || threat.type === selectedFilter
+    const matchesSeverity = selectedSeverity === 'all' || threat.severity === selectedSeverity
+    return matchesType && matchesSeverity
+  })
 
   const criticalCount = filteredThreats.filter(t => t.severity === 'critical').length
   const highCount = filteredThreats.filter(t => t.severity === 'high').length
@@ -233,18 +237,100 @@ export function ThreatDashboard() {
             })}
           </div>
 
-          {selectedFilter !== 'all' && (
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedSeverity === 'all' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedSeverity('all')}
+              className="gap-2 font-mono text-xs uppercase"
+            >
+              <Shield size={16} weight="fill" />
+              All Severity
+            </Button>
+            <Button
+              variant={selectedSeverity === 'critical' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedSeverity('critical')}
+              className={`gap-2 font-mono text-xs uppercase ${
+                selectedSeverity === 'critical' 
+                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' 
+                  : 'hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50'
+              }`}
+            >
+              <ShieldWarning size={16} weight="fill" />
+              Critical
+            </Button>
+            <Button
+              variant={selectedSeverity === 'high' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedSeverity('high')}
+              className={`gap-2 font-mono text-xs uppercase ${
+                selectedSeverity === 'high' 
+                  ? 'bg-warning text-warning-foreground hover:bg-warning/90' 
+                  : 'hover:bg-warning/10 hover:text-warning hover:border-warning/50'
+              }`}
+            >
+              <WarningCircle size={16} weight="fill" />
+              High
+            </Button>
+            <Button
+              variant={selectedSeverity === 'medium' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedSeverity('medium')}
+              className={`gap-2 font-mono text-xs uppercase ${
+                selectedSeverity === 'medium' 
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
+                  : 'hover:bg-primary/10'
+              }`}
+            >
+              <Target size={16} weight="fill" />
+              Medium
+            </Button>
+            <Button
+              variant={selectedSeverity === 'low' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedSeverity('low')}
+              className={`gap-2 font-mono text-xs uppercase ${
+                selectedSeverity === 'low' 
+                  ? 'bg-success text-success-foreground hover:bg-success/90' 
+                  : 'hover:bg-success/10 hover:text-success hover:border-success/50'
+              }`}
+            >
+              <CheckCircle size={16} weight="fill" />
+              Low
+            </Button>
+          </div>
+
+          {(selectedFilter !== 'all' || selectedSeverity !== 'all') && (
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline" className="font-mono text-xs">
-                Showing {filteredThreats.length} {selectedFilter} threat{filteredThreats.length !== 1 ? 's' : ''}
+                Showing {filteredThreats.length} filtered threat{filteredThreats.length !== 1 ? 's' : ''}
               </Badge>
+              {selectedFilter !== 'all' && (
+                <Badge className="bg-primary/20 text-primary border-primary/50 font-mono text-xs">
+                  Type: {selectedFilter.toUpperCase()}
+                </Badge>
+              )}
+              {selectedSeverity !== 'all' && (
+                <Badge className={`font-mono text-xs ${
+                  selectedSeverity === 'critical' ? 'bg-destructive/20 text-destructive border-destructive/50' :
+                  selectedSeverity === 'high' ? 'bg-warning/20 text-warning border-warning/50' :
+                  selectedSeverity === 'medium' ? 'bg-primary/20 text-primary border-primary/50' :
+                  'bg-success/20 text-success border-success/50'
+                }`}>
+                  Severity: {selectedSeverity.toUpperCase()}
+                </Badge>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setSelectedFilter('all')}
+                onClick={() => {
+                  setSelectedFilter('all')
+                  setSelectedSeverity('all')
+                }}
                 className="text-xs font-mono uppercase h-7"
               >
-                Clear Filter
+                Clear All Filters
               </Button>
             </div>
           )}

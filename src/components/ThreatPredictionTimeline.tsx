@@ -55,17 +55,25 @@ const GEOGRAPHIC_REGIONS = [
   { id: 'africa', name: 'Africa', subregions: ['North Africa', 'Sahel Region', 'Horn of Africa', 'Central Africa', 'Red Sea'] },
 ]
 
+type SeverityFilter = 'all' | 'critical' | 'high' | 'medium' | 'low'
+
 export function ThreatPredictionTimeline({ threatContext }: ThreatPredictionTimelineProps) {
   const [predictions, setPredictions] = useState<PredictionScenario[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [selectedScenario, setSelectedScenario] = useState<string | null>(null)
   const [analysisDepth, setAnalysisDepth] = useState<'basic' | 'detailed' | 'comprehensive'>('detailed')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
+  const [selectedSeverity, setSelectedSeverity] = useState<SeverityFilter>('all')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   useEffect(() => {
     generatePredictions()
   }, [threatContext, selectedRegions, analysisDepth])
+  
+  const filteredPredictions = predictions.filter(pred => {
+    if (selectedSeverity === 'all') return true
+    return pred.severity === selectedSeverity
+  })
 
   const toggleRegion = (regionId: string) => {
     setSelectedRegions(current => 
@@ -313,6 +321,67 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
               
               <Separator orientation="vertical" className="h-8" />
               
+              <div className="flex items-center gap-1">
+                <Button
+                  variant={selectedSeverity === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedSeverity('all')}
+                  className="text-xs font-mono h-8 px-2"
+                >
+                  All
+                </Button>
+                <Button
+                  variant={selectedSeverity === 'critical' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedSeverity('critical')}
+                  className={`text-xs font-mono h-8 px-2 ${
+                    selectedSeverity === 'critical'
+                      ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                      : 'hover:bg-destructive/10 hover:text-destructive'
+                  }`}
+                >
+                  Critical
+                </Button>
+                <Button
+                  variant={selectedSeverity === 'high' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedSeverity('high')}
+                  className={`text-xs font-mono h-8 px-2 ${
+                    selectedSeverity === 'high'
+                      ? 'bg-warning text-warning-foreground hover:bg-warning/90'
+                      : 'hover:bg-warning/10 hover:text-warning'
+                  }`}
+                >
+                  High
+                </Button>
+                <Button
+                  variant={selectedSeverity === 'medium' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedSeverity('medium')}
+                  className={`text-xs font-mono h-8 px-2 ${
+                    selectedSeverity === 'medium'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      : 'hover:bg-primary/10'
+                  }`}
+                >
+                  Medium
+                </Button>
+                <Button
+                  variant={selectedSeverity === 'low' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedSeverity('low')}
+                  className={`text-xs font-mono h-8 px-2 ${
+                    selectedSeverity === 'low'
+                      ? 'bg-success text-success-foreground hover:bg-success/90'
+                      : 'hover:bg-success/10 hover:text-success'
+                  }`}
+                >
+                  Low
+                </Button>
+              </div>
+              
+              <Separator orientation="vertical" className="h-8" />
+              
               <Button
                 variant={analysisDepth === 'basic' ? 'default' : 'outline'}
                 size="sm"
@@ -355,7 +424,7 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
         </CardHeader>
 
         <CardContent>
-          {selectedRegions.length > 0 && (
+          {(selectedRegions.length > 0 || selectedSeverity !== 'all') && (
             <div className="mb-4 flex items-center gap-2 flex-wrap">
               <span className="text-xs font-mono text-muted-foreground uppercase">Active Filters:</span>
               {GEOGRAPHIC_REGIONS.filter(r => selectedRegions.includes(r.id)).map(region => (
@@ -370,6 +439,21 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
                   <X size={12} weight="bold" />
                 </Badge>
               ))}
+              {selectedSeverity !== 'all' && (
+                <Badge
+                  variant="default"
+                  className={`gap-1.5 text-xs font-mono cursor-pointer ${
+                    selectedSeverity === 'critical' ? 'bg-destructive hover:bg-destructive/80' :
+                    selectedSeverity === 'high' ? 'bg-warning hover:bg-warning/80' :
+                    selectedSeverity === 'medium' ? 'bg-primary hover:bg-primary/80' :
+                    'bg-success hover:bg-success/80'
+                  }`}
+                  onClick={() => setSelectedSeverity('all')}
+                >
+                  {selectedSeverity.toUpperCase()}
+                  <X size={12} weight="bold" />
+                </Badge>
+              )}
             </div>
           )}
           
@@ -570,6 +654,7 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
                       </motion.div>
                     ))}
                   </AnimatePresence>
+                  )
                 </div>
               </ScrollArea>
 
@@ -581,7 +666,7 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
                       <span>Powered by DigitalOcean Gradient™ AI</span>
                     </div>
                     <div className="text-muted-foreground font-mono">
-                      {predictions.length} scenarios • {analysisDepth} analysis
+                      {filteredPredictions.length} of {predictions.length} scenarios • {analysisDepth} analysis
                     </div>
                   </div>
                 </CardContent>
