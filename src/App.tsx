@@ -10,12 +10,14 @@ import { KeyboardShortcuts } from '@/components/KeyboardShortcuts'
 import { StatusNotifications } from '@/components/StatusNotifications'
 import { ThreatNotificationPanel } from '@/components/ThreatNotificationPanel'
 import { useThreatNotifications } from '@/hooks/use-threat-notifications'
+import { GradientConfigPanel, GradientStatusBadge } from '@/components/GradientConfig'
+import { queryAI } from '@/lib/ai-service'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
@@ -46,6 +48,7 @@ function App() {
   const [showThreatComparison, setShowThreatComparison] = useState(false)
   const [searchResults, setSearchResults] = useState<Message[]>([])
   const [isSearchActive, setIsSearchActive] = useState(false)
+  const [showGradientConfig, setShowGradientConfig] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -127,7 +130,7 @@ function App() {
     setStreamingContent('')
 
     try {
-      const prompt = window.spark.llmPrompt`You are a military intelligence analyst and defense strategist with expertise in:
+      const systemPrompt = `You are a military intelligence analyst and defense strategist with expertise in:
 - Geopolitical conflict analysis
 - Aerospace threat detection and classification
 - Missile defense systems and countermeasures
@@ -156,13 +159,10 @@ When analyzing threats or conflicts:
 3. Recommend specific defensive measures
 4. Consider multi-domain warfare aspects
 5. Reference relevant military doctrine
-6. Suggest resource positioning
+6. Suggest resource positioning`
 
-User intelligence query: ${textToSend}
-
-Provide detailed military intelligence analysis with actionable recommendations.`
-
-      const response = await window.spark.llm(prompt, 'gpt-4o')
+      const { text: response, provider } = await queryAI(systemPrompt, textToSend)
+      console.log(`[SENTINEL] Intelligence response via ${provider}`)
       
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
@@ -408,6 +408,17 @@ Provide detailed military intelligence analysis with actionable recommendations.
               <KeyboardIcon size={16} />
               <span className="hidden xl:inline">Shortcuts</span>
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGradientConfig(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="DigitalOcean Gradient™ AI Settings"
+            >
+              <GearSix size={16} />
+              <span className="hidden xl:inline">Gradient</span>
+            </Button>
+            <GradientStatusBadge />
           </div>
         </div>
       </header>
@@ -613,6 +624,10 @@ Provide detailed military intelligence analysis with actionable recommendations.
           onClose={() => setShowThreatComparison(false)}
           threats={mockThreats}
         />
+      )}
+
+      {showGradientConfig && (
+        <GradientConfigPanel onClose={() => setShowGradientConfig(false)} />
       )}
     </div>
   )

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { Progress } from '@/components/ui/progress'
+import { queryAISimple } from '@/lib/ai-service'
 import { 
   Clock, 
   Target, 
@@ -57,7 +58,7 @@ export function ThreatPredictionTimeline({ threatContext, regionFilter }: Threat
       const contextInfo = threatContext || 'current global military tensions and active conflicts'
       const regions = regionFilter && regionFilter.length > 0 ? regionFilter.join(', ') : 'all monitored regions'
       
-      const prompt = window.spark.llmPrompt`You are a military intelligence AI analyzing future threat scenarios. Generate exactly 5 realistic threat prediction scenarios for the next 72 hours.
+      const prompt = `You are a military intelligence AI analyzing future threat scenarios. Generate exactly 5 realistic threat prediction scenarios for the next 72 hours.
 
 Context: ${contextInfo}
 Regions of Focus: ${regions}
@@ -80,7 +81,8 @@ Return as valid JSON with a single property "scenarios" containing an array of s
 
 Make predictions realistic based on current geopolitical tensions (Iran-Israel, GCC region, Ukraine, Taiwan Strait, South China Sea). Ensure timeframes progress logically from near-term to 72 hours out.`
 
-      const response = await window.spark.llm(prompt, 'gpt-4o', true)
+      const { text: response, provider } = await queryAISimple(prompt)
+      console.log(`[SENTINEL] Predictions via ${provider}`)
       const data = JSON.parse(response)
       
       if (data.scenarios && Array.isArray(data.scenarios)) {

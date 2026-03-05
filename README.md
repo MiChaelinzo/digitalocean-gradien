@@ -50,7 +50,8 @@ The platform actively monitors and analyzes the following conflict zones and str
 
 ### Core Technologies
 - **Frontend Framework:** React 19.2 with TypeScript 5.7
-- **AI Platform:** [DigitalOcean Gradient™ AI](https://www.digitalocean.com/products/gradient/platform)
+- **AI Platform:** [DigitalOcean Gradient™ AI](https://www.digitalocean.com/products/gradient/platform) — Serverless LLM inference via `https://inference.do-ai.run/v1/chat/completions`
+- **AI Fallback:** GitHub Spark LLM (when Gradient is not configured)
 - **UI Components:** shadcn/ui v4 with Radix UI primitives
 - **Styling:** Tailwind CSS 4 with custom military theme
 - **Animations:** Framer Motion for tactical UI transitions
@@ -60,7 +61,7 @@ The platform actively monitors and analyzes the following conflict zones and str
 ### Key Dependencies
 ```json
 {
-  "@github/spark": "Real-time AI integration & persistence",
+  "@github/spark": "Spark KV persistence & fallback LLM",
   "@phosphor-icons/react": "Military-grade iconography",
   "framer-motion": "Tactical animations",
   "sonner": "Toast notifications",
@@ -74,7 +75,7 @@ The platform actively monitors and analyzes the following conflict zones and str
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Access to DigitalOcean Gradient™ AI platform
+- A [DigitalOcean Gradient™ AI](https://www.digitalocean.com/products/gradient/platform) model access key
 
 ### Installation
 
@@ -94,7 +95,13 @@ npm install
 npm run dev
 ```
 
-4. **Build for production**
+4. **Configure DigitalOcean Gradient™ AI**
+   - Click the **⚙ Gradient** button in the top-right toolbar
+   - Enter your Gradient model access key (get one from [DigitalOcean Cloud Console](https://cloud.digitalocean.com/gradient))
+   - Select an inference model (default: Llama 3.3 70B)
+   - Click **Test** to verify the connection, then **Save Config**
+
+5. **Build for production**
 ```bash
 npm run build
 ```
@@ -186,13 +193,27 @@ Real-time tracking of aerial threats:
 
 ## 🔧 Configuration
 
-### Environment Variables
+### DigitalOcean Gradient™ AI Setup
 
-The application uses DigitalOcean Gradient™ AI which requires no additional API keys in development. For production deployment:
+SENTINEL uses [DigitalOcean Gradient™ AI Platform](https://www.digitalocean.com/products/gradient/platform) for serverless LLM inference. The API key is configured through the in-app settings panel (⚙ Gradient button) and stored locally in your browser's `localStorage`.
 
-```env
-# DigitalOcean Gradient AI is pre-configured via Spark SDK
-# No additional environment variables required
+**How it works:**
+1. All intelligence queries, threat predictions, and report generation are routed through the **Gradient Inference API** at `https://inference.do-ai.run/v1/chat/completions`.
+2. If Gradient is not configured, the app falls back to GitHub Spark LLM.
+3. The status badge in the header shows the active provider (`⚡ GRADIENT™` or `○ SPARK`).
+
+**Supported models:**
+| Model | Provider | Description |
+|-------|----------|-------------|
+| `llama3.3-70b-instruct` | Meta | Default — best for complex military analysis |
+| `llama3.1-8b-instruct` | Meta | Faster, lighter model for quick queries |
+| `mistral-small-24b-instruct-2501` | Mistral | Balanced reasoning and speed |
+
+**API integration details:**
+```
+Endpoint:  POST https://inference.do-ai.run/v1/chat/completions
+Auth:      Authorization: Bearer <MODEL_ACCESS_KEY>
+Format:    OpenAI-compatible (model, messages, stream)
 ```
 
 ### Customizing Threat Data
@@ -207,19 +228,30 @@ Edit threat data in component files:
 
 ### Powered by DigitalOcean Gradient™
 
-The platform leverages [DigitalOcean Gradient™ AI](https://www.digitalocean.com/products/gradient/platform) for:
+The platform leverages [DigitalOcean Gradient™ AI Platform](https://www.digitalocean.com/products/gradient/platform) for serverless LLM inference:
 
-1. **Threat Analysis** - Real-time assessment of military threats and geopolitical situations
-2. **Strategic Planning** - Multi-domain warfare recommendations
+1. **Threat Analysis** - Real-time assessment of military threats via Gradient chat completions
+2. **Strategic Planning** - Multi-domain warfare recommendations powered by Llama 3.3 70B
 3. **Defensive Measures** - Countermeasure protocols and resource allocation
-4. **Conflict Prediction** - Escalation probability and timeline forecasting
-5. **Technical Intelligence** - Detailed specifications of military assets
+4. **Conflict Prediction** - 72-hour threat prediction timeline with AI-generated scenarios
+5. **Report Generation** - Executive intelligence summaries via Gradient inference
+6. **Technical Intelligence** - Detailed specifications of military assets
 
-### Model: GPT-4o
-- Advanced reasoning for complex military scenarios
-- Technical precision in threat assessments
-- Multi-factor strategic analysis
-- Real-time intelligence synthesis
+### Architecture
+
+```
+User Query
+  ├─► DigitalOcean Gradient™ API (primary)
+  │     POST https://inference.do-ai.run/v1/chat/completions
+  │     Model: llama3.3-70b-instruct (configurable)
+  │
+  └─► GitHub Spark LLM (fallback)
+        window.spark.llm()
+```
+
+- **Gradient Client** (`src/lib/gradient-client.ts`) — wraps the Gradient inference API with streaming support
+- **AI Service** (`src/lib/ai-service.ts`) — unified interface with automatic provider fallback
+- **Config Panel** (`src/components/GradientConfig.tsx`) — in-app API key management
 
 **Learn more:**
 - [DigitalOcean Gradient Platform](https://www.digitalocean.com/products/gradient/platform)
