@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen, Users, Gauge, Layout } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
@@ -28,6 +28,10 @@ import { ThreatComparison } from '@/components/ThreatComparison'
 import { ThreatPredictionTimeline } from '@/components/ThreatPredictionTimeline'
 import { AssetUploadModal } from '@/components/AssetUploadModal'
 import { AssetLibrary } from '@/components/AssetLibrary'
+import { CollaborationPanel } from '@/components/CollaborationPanel'
+import { AdvancedExport } from '@/components/AdvancedExport'
+import { SystemHealth } from '@/components/SystemHealth'
+import { DashboardCustomization } from '@/components/DashboardCustomization'
 import type { Asset } from '@/types/assets'
 
 interface Message {
@@ -55,6 +59,10 @@ function App() {
   const [showGradientConfig, setShowGradientConfig] = useState(false)
   const [showAssetUpload, setShowAssetUpload] = useState(false)
   const [showAssetLibrary, setShowAssetLibrary] = useState(false)
+  const [showCollaboration, setShowCollaboration] = useState(false)
+  const [showAdvancedExport, setShowAdvancedExport] = useState(false)
+  const [showSystemHealth, setShowSystemHealth] = useState(false)
+  const [showDashboardCustom, setShowDashboardCustom] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -379,6 +387,36 @@ Provide detailed intelligence briefing based on visual analysis.`
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowCollaboration(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Team Collaboration"
+            >
+              <Users size={16} weight="fill" />
+              <span className="hidden xl:inline">Team</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSystemHealth(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="System Performance"
+            >
+              <Gauge size={16} weight="fill" />
+              <span className="hidden xl:inline">Health</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowDashboardCustom(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Customize Dashboard"
+            >
+              <Layout size={16} weight="fill" />
+              <span className="hidden xl:inline">Layout</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowAssetUpload(true)}
               className="gap-2 text-xs font-mono uppercase"
               title="Upload Intelligence Assets"
@@ -452,6 +490,16 @@ Provide detailed intelligence briefing based on visual analysis.`
                 >
                   <Clock size={16} />
                   <span className="hidden xl:inline">History</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowAdvancedExport(true)}
+                  className="gap-2 text-xs font-mono uppercase"
+                  title="Advanced Export Options"
+                >
+                  <FileArrowDown size={16} weight="fill" />
+                  <span className="hidden xl:inline">Export</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -748,6 +796,35 @@ Provide detailed intelligence briefing based on visual analysis.`
           isOpen={showAssetLibrary}
           onClose={() => setShowAssetLibrary(false)}
           onAnalyzeAsset={handleAnalyzeAsset}
+        />
+      )}
+
+      {showCollaboration && (
+        <CollaborationPanel
+          isOpen={showCollaboration}
+          onClose={() => setShowCollaboration(false)}
+        />
+      )}
+
+      {showAdvancedExport && (
+        <AdvancedExport
+          isOpen={showAdvancedExport}
+          onClose={() => setShowAdvancedExport(false)}
+          messages={messageList}
+        />
+      )}
+
+      {showSystemHealth && (
+        <SystemHealth
+          isOpen={showSystemHealth}
+          onClose={() => setShowSystemHealth(false)}
+        />
+      )}
+
+      {showDashboardCustom && (
+        <DashboardCustomization
+          isOpen={showDashboardCustom}
+          onClose={() => setShowDashboardCustom(false)}
         />
       )}
     </div>
