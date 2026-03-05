@@ -22,7 +22,9 @@ import {
   WarningCircle,
   MapPin,
   FunnelSimple,
-  X
+  X,
+  ListChecks,
+  Stack
 } from '@phosphor-icons/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
@@ -56,6 +58,7 @@ const GEOGRAPHIC_REGIONS = [
 ]
 
 type SeverityFilter = 'all' | 'critical' | 'high' | 'medium' | 'low'
+type SeverityPreset = 'all' | 'critical-only' | 'high-critical' | 'medium-high-critical' | 'low-medium'
 
 export function ThreatPredictionTimeline({ threatContext }: ThreatPredictionTimelineProps) {
   const [predictions, setPredictions] = useState<PredictionScenario[]>([])
@@ -64,16 +67,49 @@ export function ThreatPredictionTimeline({ threatContext }: ThreatPredictionTime
   const [analysisDepth, setAnalysisDepth] = useState<'basic' | 'detailed' | 'comprehensive'>('detailed')
   const [selectedRegions, setSelectedRegions] = useState<string[]>([])
   const [selectedSeverity, setSelectedSeverity] = useState<SeverityFilter>('all')
+  const [severityPreset, setSeverityPreset] = useState<SeverityPreset>('all')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
 
   useEffect(() => {
     generatePredictions()
   }, [threatContext, selectedRegions, analysisDepth])
   
+  const getSeveritiesFromPreset = (preset: SeverityPreset): SeverityFilter[] => {
+    switch (preset) {
+      case 'critical-only':
+        return ['critical']
+      case 'high-critical':
+        return ['high', 'critical']
+      case 'medium-high-critical':
+        return ['medium', 'high', 'critical']
+      case 'low-medium':
+        return ['low', 'medium']
+      case 'all':
+      default:
+        return ['all', 'critical', 'high', 'medium', 'low']
+    }
+  }
+  
   const filteredPredictions = predictions.filter(pred => {
-    if (selectedSeverity === 'all') return true
-    return pred.severity === selectedSeverity
+    const allowedSeverities = getSeveritiesFromPreset(severityPreset)
+    if (severityPreset === 'all') return true
+    return allowedSeverities.includes(pred.severity as SeverityFilter)
   })
+  
+  const handlePresetChange = (preset: SeverityPreset) => {
+    setSeverityPreset(preset)
+    if (preset === 'all') {
+      setSelectedSeverity('all')
+    }
+    const presetLabels = {
+      'all': 'All Threats',
+      'critical-only': 'Critical Only',
+      'high-critical': 'High + Critical',
+      'medium-high-critical': 'Medium + High + Critical',
+      'low-medium': 'Low + Medium'
+    }
+    toast.success(`Filter preset: ${presetLabels[preset]}`)
+  }
 
   const toggleRegion = (regionId: string) => {
     setSelectedRegions(current => 
@@ -321,63 +357,107 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
               
               <Separator orientation="vertical" className="h-8" />
               
-              <div className="flex items-center gap-1">
-                <Button
-                  variant={selectedSeverity === 'all' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedSeverity('all')}
-                  className="text-xs font-mono h-8 px-2"
-                >
-                  All
-                </Button>
-                <Button
-                  variant={selectedSeverity === 'critical' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedSeverity('critical')}
-                  className={`text-xs font-mono h-8 px-2 ${
-                    selectedSeverity === 'critical'
-                      ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                      : 'hover:bg-destructive/10 hover:text-destructive'
-                  }`}
-                >
-                  Critical
-                </Button>
-                <Button
-                  variant={selectedSeverity === 'high' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedSeverity('high')}
-                  className={`text-xs font-mono h-8 px-2 ${
-                    selectedSeverity === 'high'
-                      ? 'bg-warning text-warning-foreground hover:bg-warning/90'
-                      : 'hover:bg-warning/10 hover:text-warning'
-                  }`}
-                >
-                  High
-                </Button>
-                <Button
-                  variant={selectedSeverity === 'medium' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedSeverity('medium')}
-                  className={`text-xs font-mono h-8 px-2 ${
-                    selectedSeverity === 'medium'
-                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                      : 'hover:bg-primary/10'
-                  }`}
-                >
-                  Medium
-                </Button>
-                <Button
-                  variant={selectedSeverity === 'low' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setSelectedSeverity('low')}
-                  className={`text-xs font-mono h-8 px-2 ${
-                    selectedSeverity === 'low'
-                      ? 'bg-success text-success-foreground hover:bg-success/90'
-                      : 'hover:bg-success/10 hover:text-success'
-                  }`}
-                >
-                  Low
-                </Button>
+              <div className="flex items-center gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 text-xs font-mono uppercase"
+                    >
+                      <ListChecks size={16} weight={severityPreset !== 'all' ? 'fill' : 'regular'} />
+                      Severity Presets
+                      {severityPreset !== 'all' && (
+                        <Badge className="ml-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px]">
+                          ✓
+                        </Badge>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0" align="end">
+                    <div className="p-3 border-b border-border bg-muted/30">
+                      <h4 className="text-sm font-bold font-mono uppercase flex items-center gap-2">
+                        <Stack size={16} weight="fill" className="text-primary" />
+                        Quick Filters
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Common severity combinations
+                      </p>
+                    </div>
+                    <div className="p-2 space-y-1">
+                      <Button
+                        variant={severityPreset === 'all' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handlePresetChange('all')}
+                        className="w-full justify-start text-xs font-mono"
+                      >
+                        <span className="flex-1 text-left">All Threats</span>
+                        {severityPreset === 'all' && <CheckCircle size={14} weight="fill" />}
+                      </Button>
+                      <Button
+                        variant={severityPreset === 'critical-only' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handlePresetChange('critical-only')}
+                        className={`w-full justify-start text-xs font-mono ${
+                          severityPreset === 'critical-only' 
+                            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                            : 'hover:bg-destructive/10 hover:text-destructive'
+                        }`}
+                      >
+                        <ShieldWarning size={14} weight="fill" className="mr-2" />
+                        <span className="flex-1 text-left">Critical Only</span>
+                        {severityPreset === 'critical-only' && <CheckCircle size={14} weight="fill" />}
+                      </Button>
+                      <Button
+                        variant={severityPreset === 'high-critical' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handlePresetChange('high-critical')}
+                        className={`w-full justify-start text-xs font-mono ${
+                          severityPreset === 'high-critical'
+                            ? 'bg-warning text-warning-foreground hover:bg-warning/90'
+                            : 'hover:bg-warning/10 hover:text-warning'
+                        }`}
+                      >
+                        <WarningCircle size={14} weight="fill" className="mr-2" />
+                        <span className="flex-1 text-left">High + Critical</span>
+                        {severityPreset === 'high-critical' && <CheckCircle size={14} weight="fill" />}
+                      </Button>
+                      <Button
+                        variant={severityPreset === 'medium-high-critical' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handlePresetChange('medium-high-critical')}
+                        className={`w-full justify-start text-xs font-mono ${
+                          severityPreset === 'medium-high-critical'
+                            ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                            : 'hover:bg-primary/10'
+                        }`}
+                      >
+                        <Target size={14} weight="fill" className="mr-2" />
+                        <span className="flex-1 text-left">Med + High + Critical</span>
+                        {severityPreset === 'medium-high-critical' && <CheckCircle size={14} weight="fill" />}
+                      </Button>
+                      <Button
+                        variant={severityPreset === 'low-medium' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handlePresetChange('low-medium')}
+                        className={`w-full justify-start text-xs font-mono ${
+                          severityPreset === 'low-medium'
+                            ? 'bg-success text-success-foreground hover:bg-success/90'
+                            : 'hover:bg-success/10 hover:text-success'
+                        }`}
+                      >
+                        <CheckCircle size={14} weight="fill" className="mr-2" />
+                        <span className="flex-1 text-left">Low + Medium</span>
+                        {severityPreset === 'low-medium' && <CheckCircle size={14} weight="fill" />}
+                      </Button>
+                    </div>
+                    <div className="p-2 border-t border-border bg-muted/30">
+                      <p className="text-[10px] text-muted-foreground font-mono text-center">
+                        {filteredPredictions.length} of {predictions.length} predictions shown
+                      </p>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
               
               <Separator orientation="vertical" className="h-8" />
@@ -424,7 +504,7 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
         </CardHeader>
 
         <CardContent>
-          {(selectedRegions.length > 0 || selectedSeverity !== 'all') && (
+          {(selectedRegions.length > 0 || severityPreset !== 'all') && (
             <div className="mb-4 flex items-center gap-2 flex-wrap">
               <span className="text-xs font-mono text-muted-foreground uppercase">Active Filters:</span>
               {GEOGRAPHIC_REGIONS.filter(r => selectedRegions.includes(r.id)).map(region => (
@@ -439,18 +519,21 @@ Make predictions realistic based on current geopolitical tensions (Iran-Israel, 
                   <X size={12} weight="bold" />
                 </Badge>
               ))}
-              {selectedSeverity !== 'all' && (
+              {severityPreset !== 'all' && (
                 <Badge
                   variant="default"
                   className={`gap-1.5 text-xs font-mono cursor-pointer ${
-                    selectedSeverity === 'critical' ? 'bg-destructive hover:bg-destructive/80' :
-                    selectedSeverity === 'high' ? 'bg-warning hover:bg-warning/80' :
-                    selectedSeverity === 'medium' ? 'bg-primary hover:bg-primary/80' :
+                    severityPreset === 'critical-only' ? 'bg-destructive hover:bg-destructive/80' :
+                    severityPreset === 'high-critical' ? 'bg-warning hover:bg-warning/80' :
+                    severityPreset === 'medium-high-critical' ? 'bg-primary hover:bg-primary/80' :
                     'bg-success hover:bg-success/80'
                   }`}
-                  onClick={() => setSelectedSeverity('all')}
+                  onClick={() => handlePresetChange('all')}
                 >
-                  {selectedSeverity.toUpperCase()}
+                  {severityPreset === 'critical-only' && 'CRITICAL ONLY'}
+                  {severityPreset === 'high-critical' && 'HIGH + CRITICAL'}
+                  {severityPreset === 'medium-high-critical' && 'MED + HIGH + CRIT'}
+                  {severityPreset === 'low-medium' && 'LOW + MEDIUM'}
                   <X size={12} weight="bold" />
                 </Badge>
               )}
