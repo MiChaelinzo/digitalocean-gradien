@@ -1,19 +1,19 @@
 export interface Asset {
-  id: string
+  name: stri
   name: string
   type: 'image' | 'video' | 'document'
-  fileType: string
-  size: number
-  url: string
-  thumbnailUrl?: string
-  uploadedAt: string
-  description?: string
-  tags?: string[]
-  analysis?: AssetAnalysis
+  uploadedAt: stri
+  tags?: strin
 }
+export interface AssetA
+  timestamp: string
+  threats?: ThreatAsse
+  summary: string
 
-export interface AssetAnalysis {
-  status: 'pending' | 'analyzing' | 'complete' | 'failed'
+ 
+
+  location?: string
+
   timestamp: string
   findings: string[]
   threats?: ThreatAssessment[]
@@ -30,9 +30,9 @@ export interface ThreatAssessment {
 }
 
 export interface UploadProgress {
-  fileId: string
+
   fileName: string
-  progress: number
+
   status: 'uploading' | 'processing' | 'complete' | 'error'
-  error?: string
+
 }
