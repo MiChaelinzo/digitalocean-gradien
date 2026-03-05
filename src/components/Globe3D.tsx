@@ -1084,7 +1084,6 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               <Button
                 size="sm"
                 variant="outline"
-                className={`bg-background/80 backdrop-blur-sm gap-2 ${weatherLayers.size > 0 ? 'border-accent text-accent' : ''}`}
                 title="Weather Overlays"
               >
                 <CloudRain size={16} weight={weatherLayers.size > 0 ? 'fill' : 'regular'} />
@@ -1133,55 +1132,55 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               <DropdownMenuItem 
                 onClick={() => setMapStyle('dark')}
                 className={mapStyle === 'dark' ? 'bg-primary/20 text-primary' : ''}
-              >
-                <GlobeIcon size={16} weight={mapStyle === 'dark' ? 'fill' : 'regular'} className="mr-2" />
-                <span className="font-mono text-xs">Dark</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setMapStyle('satellite')}
-                className={mapStyle === 'satellite' ? 'bg-primary/20 text-primary' : ''}
-              >
-                <Planet size={16} weight={mapStyle === 'satellite' ? 'fill' : 'regular'} className="mr-2" />
-                <span className="font-mono text-xs">Satellite</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setMapStyle('terrain')}
-                className={mapStyle === 'terrain' ? 'bg-primary/20 text-primary' : ''}
-              >
-                <MapTrifold size={16} weight={mapStyle === 'terrain' ? 'fill' : 'regular'} className="mr-2" />
-                <span className="font-mono text-xs">Terrain</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                className={`bg-background/80 backdrop-blur-sm gap-2 ${satelliteImageryType !== 'standard' ? 'border-accent text-accent' : ''}`}
-                title="Satellite Imagery Type"
-              >
-                <Planet size={16} weight={satelliteImageryType !== 'standard' ? 'fill' : 'regular'} />
-                <span className="hidden md:inline text-xs font-mono">Satellite</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-card/95 backdrop-blur-md w-56">
-              <DropdownMenuLabel className="font-mono text-xs text-muted-foreground uppercase">
-                Satellite Imagery
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {(['standard', 'live', 'infrared', 'radar'] as const).map((type) => {
-                const Icon = getSatelliteImageryIcon(type)
-                const isActive = satelliteImageryType === type
-                return (
-                  <DropdownMenuItem
-                    key={type}
-                    onClick={() => setSatelliteImageryType(type)}
-                    className={isActive ? 'bg-primary/20 text-primary' : ''}
-                  >
-                    <Icon size={16} weight={isActive ? 'fill' : 'regular'} className="mr-2" />
-                    <span className="font-mono text-xs">{getSatelliteImageryLabel(type)}</span>
-                  </DropdownMenuItem>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={toggle3D}
+            className={`bg-background/80 backdrop-blur-sm ${is3D ? 'border-primary text-primary' : ''}`}
+            title={is3D ? "Switch to 2D" : "Switch to 3D"}
+          >
+            <Cube size={16} weight={is3D ? "fill" : "regular"} />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleZoomIn}
+            className="bg-background/80 backdrop-blur-sm"
+            title="Zoom In"
+          >
+            <MagnifyingGlassPlus size={16} />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleZoomOut}
+            className="bg-background/80 backdrop-blur-sm"
+            title="Zoom Out"
+          >
+            <MagnifyingGlassMinus size={16} />
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleReset}
+            className="bg-background/80 backdrop-blur-sm"
+            title="Reset View"
+          >
+            <ArrowsClockwise size={16} />
+          </Button>
+        </div>
+
+        <div 
+          ref={mapContainerRef} 
+          className="w-full h-[600px] relative"
+        />
+
+        <AnimatePresence>
+          {hoveredThreat && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
                 )
               })}
               <DropdownMenuSeparator />
