@@ -23,11 +23,11 @@ import {
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 
-interface Widget {
+interface WidgetConfig {
   id: string
   name: string
   description: string
-  icon: any
+  iconName: string
   enabled: boolean
   category: 'analytics' | 'monitoring' | 'intelligence'
 }
@@ -37,12 +37,23 @@ interface DashboardCustomizationProps {
   onClose: () => void
 }
 
-const DEFAULT_WIDGETS: Widget[] = [
+const ICON_MAP: Record<string, any> = {
+  Globe,
+  ChartLine,
+  Target,
+  TrendUp,
+  Bell,
+  Clock,
+  Users,
+  MapPin
+}
+
+const DEFAULT_WIDGETS: WidgetConfig[] = [
   {
     id: 'threat-map',
     name: '3D Threat Globe',
     description: 'Interactive global threat visualization',
-    icon: Globe,
+    iconName: 'Globe',
     enabled: true,
     category: 'monitoring'
   },
@@ -50,7 +61,7 @@ const DEFAULT_WIDGETS: Widget[] = [
     id: 'analytics',
     name: 'Analytics Dashboard',
     description: 'Statistical threat analysis and trends',
-    icon: ChartLine,
+    iconName: 'ChartLine',
     enabled: true,
     category: 'analytics'
   },
@@ -58,7 +69,7 @@ const DEFAULT_WIDGETS: Widget[] = [
     id: 'active-threats',
     name: 'Active Threat Monitor',
     description: 'Real-time threat tracking panel',
-    icon: Target,
+    iconName: 'Target',
     enabled: true,
     category: 'monitoring'
   },
@@ -66,7 +77,7 @@ const DEFAULT_WIDGETS: Widget[] = [
     id: 'predictions',
     name: 'AI Predictions',
     description: '72-hour threat timeline forecasting',
-    icon: TrendUp,
+    iconName: 'TrendUp',
     enabled: true,
     category: 'intelligence'
   },
@@ -74,7 +85,7 @@ const DEFAULT_WIDGETS: Widget[] = [
     id: 'notifications',
     name: 'Threat Alerts',
     description: 'Priority notification system',
-    icon: Bell,
+    iconName: 'Bell',
     enabled: true,
     category: 'monitoring'
   },
@@ -82,7 +93,7 @@ const DEFAULT_WIDGETS: Widget[] = [
     id: 'session-history',
     name: 'Session History',
     description: 'Previous intelligence sessions',
-    icon: Clock,
+    iconName: 'Clock',
     enabled: true,
     category: 'intelligence'
   },
@@ -90,7 +101,7 @@ const DEFAULT_WIDGETS: Widget[] = [
     id: 'team-collab',
     name: 'Team Collaboration',
     description: 'Multi-analyst coordination',
-    icon: Users,
+    iconName: 'Users',
     enabled: false,
     category: 'intelligence'
   },
@@ -98,14 +109,14 @@ const DEFAULT_WIDGETS: Widget[] = [
     id: 'region-focus',
     name: 'Regional Focus',
     description: 'Geographic area prioritization',
-    icon: MapPin,
+    iconName: 'MapPin',
     enabled: false,
     category: 'monitoring'
   }
 ]
 
 export function DashboardCustomization({ isOpen, onClose }: DashboardCustomizationProps) {
-  const [widgets, setWidgets] = useKV<Widget[]>('dashboard-widgets', DEFAULT_WIDGETS)
+  const [widgets, setWidgets] = useKV<WidgetConfig[]>('dashboard-widgets', DEFAULT_WIDGETS)
 
   const handleToggleWidget = (widgetId: string) => {
     setWidgets(current => 
@@ -191,7 +202,7 @@ export function DashboardCustomization({ isOpen, onClose }: DashboardCustomizati
                     </h3>
                     <div className="space-y-2">
                       {categoryWidgets.map((widget, index) => {
-                        const Icon = widget.icon
+                        const Icon = ICON_MAP[widget.iconName]
                         return (
                           <motion.div
                             key={widget.id}
@@ -211,7 +222,7 @@ export function DashboardCustomization({ isOpen, onClose }: DashboardCustomizati
                                       ? 'bg-primary/20 text-primary' 
                                       : 'bg-muted text-muted-foreground'
                                   }`}>
-                                    <Icon size={20} weight="fill" />
+                                    {Icon && <Icon size={20} weight="fill" />}
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
