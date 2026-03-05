@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import '../types/speech-recognition'
 
 interface VoiceInputOptions {
   continuous?: boolean
@@ -23,7 +22,7 @@ export function useVoiceInput({
   const recognitionRef = useRef<any>(null)
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     
     if (!SpeechRecognition) {
       setIsSupported(false)
@@ -36,12 +35,9 @@ export function useVoiceInput({
     recognition.continuous = continuous
     recognition.interimResults = interimResults
     recognition.lang = lang
-    recognition.maxAlternatives = 1
 
     recognition.onstart = () => {
       setIsListening(true)
-      setTranscript('')
-      setInterimTranscript('')
     }
 
     recognition.onresult = (event: any) => {
@@ -53,7 +49,7 @@ export function useVoiceInput({
         const transcriptText = result[0].transcript
 
         if (result.isFinal) {
-          finalTranscript += transcriptText + ' '
+          finalTranscript += transcriptText
         } else {
           interimText += transcriptText
         }
@@ -62,7 +58,7 @@ export function useVoiceInput({
       if (finalTranscript) {
         setTranscript(prev => prev + finalTranscript)
         if (onResult) {
-          onResult(finalTranscript.trim())
+          onResult(finalTranscript)
         }
       }
 
@@ -118,6 +114,7 @@ export function useVoiceInput({
     if (recognitionRef.current && !isListening) {
       try {
         recognitionRef.current.start()
+        setIsListening(true)
       } catch (error) {
         console.error('Failed to start voice recognition:', error)
       }
@@ -127,6 +124,7 @@ export function useVoiceInput({
   const stopListening = useCallback(() => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop()
+      setIsListening(false)
     }
   }, [isListening])
 

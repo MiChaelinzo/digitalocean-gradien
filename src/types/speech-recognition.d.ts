@@ -1,53 +1,53 @@
-interface SpeechRecognition extends EventTarget {
+interface ISpeechRecognition extends EventTarget {
   continuous: boolean
   interimResults: boolean
   lang: string
   maxAlternatives: number
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null
-  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null
-  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null
+  onstart: ((this: ISpeechRecognition, ev: Event) => any) | null
+  onend: ((this: ISpeechRecognition, ev: Event) => any) | null
+  onerror: ((this: ISpeechRecognition, ev: ISpeechRecognitionErrorEvent) => any) | null
+  onresult: ((this: ISpeechRecognition, ev: ISpeechRecognitionEvent) => any) | null
   start(): void
   stop(): void
   abort(): void
 }
 
-interface SpeechRecognitionErrorEvent extends Event {
+interface ISpeechRecognitionErrorEvent extends Event {
   error: string
   message: string
 }
 
-interface SpeechRecognitionEvent extends Event {
+interface ISpeechRecognitionEvent extends Event {
   resultIndex: number
-  results: SpeechRecognitionResultList
+  results: ISpeechRecognitionResultList
 }
 
-interface SpeechRecognitionResultList {
+interface ISpeechRecognitionResultList {
   length: number
-  item(index: number): SpeechRecognitionResult
-  [index: number]: SpeechRecognitionResult
+  item(index: number): ISpeechRecognitionResult
+  [index: number]: ISpeechRecognitionResult
 }
 
-interface SpeechRecognitionResult {
+interface ISpeechRecognitionResult {
   isFinal: boolean
   length: number
-  item(index: number): SpeechRecognitionAlternative
-  [index: number]: SpeechRecognitionAlternative
+  item(index: number): ISpeechRecognitionAlternative
+  [index: number]: ISpeechRecognitionAlternative
 }
 
-interface SpeechRecognitionAlternative {
+interface ISpeechRecognitionAlternative {
   transcript: string
   confidence: number
 }
 
-interface SpeechRecognitionConstructor {
-  new (): SpeechRecognition
+interface ISpeechRecognitionConstructor {
+  new (): ISpeechRecognition
 }
 
 declare global {
   interface Window {
-    SpeechRecognition: SpeechRecognitionConstructor
-    webkitSpeechRecognition: SpeechRecognitionConstructor
+    SpeechRecognition: ISpeechRecognitionConstructor
+    webkitSpeechRecognition: ISpeechRecognitionConstructor
   }
 }
 
