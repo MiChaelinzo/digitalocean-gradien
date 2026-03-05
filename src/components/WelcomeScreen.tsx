@@ -59,15 +59,15 @@ export function WelcomeScreen({ onExampleClick }: WelcomeScreenProps) {
             >
               <Button
                 variant="outline"
-                className="h-auto w-full flex flex-col items-start gap-3 p-5 md:p-6 hover:border-primary hover:bg-primary/5 transition-all duration-200 text-left"
+                className="h-auto w-full flex flex-col items-start gap-4 p-6 hover:border-primary hover:bg-primary/5 transition-all duration-200 text-left"
                 onClick={() => onExampleClick(example.prompt)}
               >
-                <div className={`w-12 h-12 rounded-md ${example.color} flex items-center justify-center border border-current/30`}>
+                <div className={`w-12 h-12 rounded-md ${example.color} flex items-center justify-center border border-current/30 shrink-0`}>
                   <example.icon size={24} weight="fill" />
                 </div>
-                <div className="flex-1 w-full">
-                  <div className="font-bold text-sm uppercase tracking-wider mb-3 text-foreground">{example.title}</div>
-                  <div className="text-sm text-foreground/80 leading-[1.75] font-mono">
+                <div className="flex-1 w-full space-y-3">
+                  <div className="font-bold text-sm uppercase tracking-wider text-foreground">{example.title}</div>
+                  <div className="text-xs md:text-sm text-foreground/80 leading-relaxed font-mono break-words">
                     {example.prompt}
                   </div>
                 </div>
