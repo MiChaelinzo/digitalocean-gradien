@@ -352,9 +352,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
 
       try {
         map.setFog({
-          color: 'rgb(186, 210, 235)',
-          'high-color': 'rgb(36, 92, 223)',
-          'horizon-blend': 0.02,
+          color: 'rgb(200, 220, 240)',
+          'high-color': 'rgb(40, 100, 230)',
+          'horizon-blend': 0.08,
           'space-color': 'rgb(11, 11, 25)',
           'star-intensity': 0.6
         })
@@ -376,7 +376,7 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
           paint: {
             'sky-type': 'atmosphere' as const,
             'sky-atmosphere-sun': [0.0, 0.0] as [number, number],
-            'sky-atmosphere-sun-intensity': 5
+            'sky-atmosphere-sun-intensity': 15
           }
         }
         
@@ -395,9 +395,9 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               },
               'source-layer': 'country_boundaries',
               paint: {
-                'line-color': '#4488ff',
-                'line-width': 2,
-                'line-opacity': 0.8
+                'line-color': '#66aaff',
+                'line-width': 2.5,
+                'line-opacity': 0.9
               }
             })
           }
@@ -407,13 +407,13 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               id: 'ocean-layer',
               type: 'background',
               paint: {
-                'background-color': '#001a33'
+                'background-color': '#0a2a4a'
               }
             }, 'country-borders')
           }
 
           if (!map.getLayer('land-layer') && map.getLayer('land')) {
-            map.setPaintProperty('land', 'background-color', '#0d2818')
+            map.setPaintProperty('land', 'background-color', '#1a3a2a')
           }
         }
       } catch (error) {
