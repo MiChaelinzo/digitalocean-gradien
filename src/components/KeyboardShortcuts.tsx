@@ -15,6 +15,7 @@ const shortcuts = [
   { key: 'Ctrl/Cmd + H', description: 'View session history', context: 'Anytime' },
   { key: 'Ctrl/Cmd + K', description: 'Show keyboard shortcuts', context: 'Anytime' },
   { key: 'Ctrl/Cmd + E', description: 'Export current session', context: 'With messages' },
+  { key: 'Ctrl/Cmd + M', description: 'Toggle voice input', context: 'Anytime' },
   { key: 'Ctrl/Cmd + 1', description: 'Switch to Intelligence tab', context: 'Anytime' },
   { key: 'Ctrl/Cmd + 2', description: 'Switch to 3D Globe tab', context: 'Anytime' },
   { key: 'Ctrl/Cmd + 3', description: 'Switch to Threats tab', context: 'Anytime' },

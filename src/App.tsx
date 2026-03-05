@@ -10,6 +10,7 @@ import { KeyboardShortcuts } from '@/components/KeyboardShortcuts'
 import { StatusNotifications } from '@/components/StatusNotifications'
 import { ThreatNotificationPanel } from '@/components/ThreatNotificationPanel'
 import { useThreatNotifications } from '@/hooks/use-threat-notifications'
+import { useVoiceInput } from '@/hooks/use-voice-input'
 import { GradientConfigPanel, GradientStatusBadge } from '@/components/GradientConfig'
 import { queryAI } from '@/lib/ai-service'
 import { Button } from '@/components/ui/button'
@@ -17,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
@@ -56,6 +57,23 @@ function App() {
   const unacknowledgedCount = (notifications || []).filter(n => !n.dismissed && !n.acknowledged).length
   const { bookmarks, addBookmark, isBookmarked } = useBookmarks()
 
+  const {
+    isListening,
+    isSupported: isVoiceSupported,
+    interimTranscript,
+    startListening,
+    stopListening,
+  } = useVoiceInput({
+    continuous: true,
+    interimResults: true,
+    onResult: (transcript) => {
+      setInput((prev) => prev + (prev ? ' ' : '') + transcript)
+    },
+    onError: (error) => {
+      toast.error(error)
+    },
+  })
+
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
       const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]')
@@ -85,6 +103,9 @@ function App() {
       } else if (isMod && e.key === 'e') {
         e.preventDefault()
         exportCurrentSession()
+      } else if (isMod && e.key === 'm') {
+        e.preventDefault()
+        handleVoiceToggle()
       } else if (isMod && e.key === '1') {
         e.preventDefault()
         setActiveTab('intelligence')
@@ -231,6 +252,21 @@ When analyzing threats or conflicts:
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
+    }
+  }
+
+  const handleVoiceToggle = () => {
+    if (!isVoiceSupported) {
+      toast.error('Voice input not supported in this browser. Try Chrome or Edge.')
+      return
+    }
+
+    if (isListening) {
+      stopListening()
+      toast.info('Voice input stopped')
+    } else {
+      startListening()
+      toast.success('Listening... Speak your intelligence query')
     }
   }
 
@@ -544,15 +580,35 @@ When analyzing threats or conflicts:
               <div className="flex-1 relative">
                 <Textarea
                   ref={textareaRef}
-                  value={input}
+                  value={input + (interimTranscript ? ' ' + interimTranscript : '')}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Enter intelligence query or threat analysis request..."
                   className="min-h-[56px] max-h-[200px] resize-none pr-4 text-sm md:text-[15px] font-mono bg-secondary/50"
                   disabled={isLoading}
                 />
+                {interimTranscript && (
+                  <div className="absolute bottom-3 right-3 text-xs text-muted-foreground font-mono italic">
+                    Listening...
+                  </div>
+                )}
               </div>
               
+              <Button
+                onClick={handleVoiceToggle}
+                disabled={isLoading}
+                size="lg"
+                variant={isListening ? 'destructive' : 'outline'}
+                className={`h-[56px] px-4 ${isListening ? 'pulse-glow' : ''}`}
+                title={isListening ? 'Stop voice input' : 'Start voice input'}
+              >
+                {isListening ? (
+                  <Stop size={20} weight="fill" />
+                ) : (
+                  <Microphone size={20} weight="fill" />
+                )}
+              </Button>
+
               <Button
                 onClick={() => handleSendMessage()}
                 disabled={!input.trim() || isLoading}
@@ -564,7 +620,7 @@ When analyzing threats or conflicts:
             </div>
             
             <p className="text-[10px] text-muted-foreground mt-2 text-center font-mono uppercase tracking-wide">
-              ENTER TO SEND // SHIFT+ENTER NEW LINE // CLASSIFIED SYSTEM
+              {isVoiceSupported ? 'VOICE INPUT ENABLED // ' : ''}ENTER TO SEND // SHIFT+ENTER NEW LINE // CLASSIFIED SYSTEM
             </p>
           </div>
         </div>
