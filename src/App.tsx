@@ -32,6 +32,7 @@ import { CollaborationPanel } from '@/components/CollaborationPanel'
 import { AdvancedExport } from '@/components/AdvancedExport'
 import { SystemHealth } from '@/components/SystemHealth'
 import { DashboardCustomization } from '@/components/DashboardCustomization'
+import { ChatSuggestions } from '@/components/ChatSuggestions'
 import type { Asset } from '@/types/assets'
 
 interface Message {
@@ -623,6 +624,17 @@ Provide detailed intelligence briefing based on visual analysis.`
                           content={streamingContent || "Processing intelligence query..."}
                           timestamp={getFormattedTime()}
                           isStreaming={!streamingContent}
+                        />
+                      )}
+
+                      {!isLoading && messageList.length > 0 && messageList[messageList.length - 1]?.role === 'assistant' && (
+                        <ChatSuggestions
+                          lastMessage={messageList[messageList.length - 1].content}
+                          onSuggestionClick={(suggestion) => {
+                            setInput(suggestion)
+                            textareaRef.current?.focus()
+                          }}
+                          isLoading={isLoading}
                         />
                       )}
                     </div>
