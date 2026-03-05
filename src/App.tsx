@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen, Users, Gauge, Layout } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen, Users, Gauge, Layout, SignOut } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
@@ -55,7 +55,7 @@ function App() {
   })
   const [authView, setAuthView] = useState<'landing' | 'login' | 'signup'>('landing')
   
-  const [messages, setMessages] = useKV<Message[]>('intel-messages', [])
+  const [messages, setMessages] = useKV<Message[]>(`intel-messages-${authState?.user?.id || 'guest'}`, [])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [streamingContent, setStreamingContent] = useState('')
@@ -392,7 +392,17 @@ Provide detailed intelligence briefing based on visual analysis.`
     toast.success('Onboarding complete. System ready.')
   }
 
-  if (!authState || !authState.isAuthenticated) {
+  const handleLogout = () => {
+    setAuthState(() => ({
+      isAuthenticated: false,
+      user: null,
+      hasCompletedOnboarding: false
+    }))
+    setAuthView('landing')
+    toast.info('Logged out successfully')
+  }
+
+  if (!authState?.isAuthenticated) {
     if (authView === 'landing') {
       return (
         <LandingPage
@@ -491,6 +501,15 @@ Provide detailed intelligence briefing based on visual analysis.`
           </div>
           
           <div className="flex items-center gap-2 flex-wrap">
+            <div className="hidden md:flex items-center gap-2 mr-2 px-3 py-1.5 bg-secondary/50 rounded-md border border-border">
+              <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <span className="text-xs font-mono text-muted-foreground">
+                {authState?.user?.fullName || 'User'}
+              </span>
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                {authState?.user?.clearanceLevel?.toUpperCase()}
+              </Badge>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -657,6 +676,16 @@ Provide detailed intelligence briefing based on visual analysis.`
               <span className="hidden xl:inline">Gradient</span>
             </Button>
             <GradientStatusBadge />
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleLogout}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Logout"
+            >
+              <SignOut size={16} weight="bold" />
+              <span className="hidden xl:inline">Logout</span>
+            </Button>
           </div>
         </div>
       </header>
