@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
-[View Demo](#) • [Report Issue](#) • [Request Feature](#)
+[View Demo](https://digitalocean-gradien--michaelinzo.github.app/) • [Report Issue](https://github.com/MiChaelinzo/digitalocean-gradien/issues) • [Request Feature](https://github.com/MiChaelinzo/digitalocean-gradien/issues)
 
 </div>
 
