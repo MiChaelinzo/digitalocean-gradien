@@ -1,35 +1,59 @@
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeade
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scr
-import { Users, UserPlus, X, Crown, CheckCirc
-import { motion, AnimatePresence } from 'fram
-interface TeamMember {
-  name: string
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { Users, UserPlus, X, Crown, CheckCircle } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useKV } from '@github/spark/hooks'
 
 interface TeamMember {
   id: string
   name: string
   role: string
-    const interval = setInterval(() => 
-        if (!current
-          ...member,
- 
+  status: 'online' | 'away' | 'offline'
+  lastActive: string
+  clearanceLevel: 'top-secret' | 'secret' | 'confidential' | 'unclassified'
+}
 
-    }, 30000)
-    return () => 
+interface CollaborationPanelProps {
+  isOpen: boolean
+  onClose: () => void
+}
 
- 
-
-
-      toast.error('Please enter a valid email address')
+export function CollaborationPanel({ isOpen, onClose }: CollaborationPanelProps) {
+  const [teamMembers, setTeamMembers] = useKV<TeamMember[]>('team-members', [
+    {
+      id: 'member-1',
+      name: 'Sarah Chen',
+      role: 'Senior Intelligence Analyst',
+      status: 'online',
+      lastActive: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      clearanceLevel: 'top-secret'
+    },
+    {
+      id: 'member-2',
+      name: 'Marcus Rodriguez',
+      role: 'Threat Assessment Lead',
+      status: 'online',
+      lastActive: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      clearanceLevel: 'secret'
+    },
+    {
+      id: 'member-3',
+      name: 'Emily Johnson',
+      role: 'Intelligence Analyst',
+      status: 'away',
+      lastActive: '14:23',
+      clearanceLevel: 'confidential'
     }
-    setIsInviting(true)
+  ])
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [isInviting, setIsInviting] = useState(false)
 
-      name: inviteE
+  useEffect(() => {
     const interval = setInterval(() => {
       setTeamMembers(current => {
         if (!current || current.length === 0) return current
@@ -62,7 +86,7 @@ interface TeamMember {
       id: `member-${Date.now()}`,
       name: inviteEmail.split('@')[0],
       role: 'Intelligence Analyst',
-        return 'bg-succe
+      status: 'offline',
       lastActive: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }),
       clearanceLevel: 'confidential'
     }
@@ -74,9 +98,9 @@ interface TeamMember {
   }
 
   const handleRemoveMember = (memberId: string) => {
-          <DialogDescription className="font-mono text-xs">
+    setTeamMembers(current => (current || []).filter(m => m.id !== memberId))
     toast.success('Team member removed')
-   
+  }
 
   const getClearanceColor = (level: string) => {
     switch (level) {
@@ -86,17 +110,17 @@ interface TeamMember {
         return 'bg-warning text-warning-foreground'
       case 'confidential':
         return 'bg-primary text-primary-foreground'
-            >
+      default:
         return 'bg-muted text-muted-foreground'
-     
+    }
   }
 
   const getStatusColor = (status: string) => {
-                {(tea
+    switch (status) {
       case 'online':
-                    initial
+        return 'bg-success'
       case 'away':
-                    classNa
+        return 'bg-warning'
       case 'offline':
         return 'bg-muted-foreground'
       default:
@@ -104,7 +128,7 @@ interface TeamMember {
     }
   }
 
-          
+  return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
         <DialogHeader>
@@ -126,120 +150,77 @@ interface TeamMember {
               onKeyDown={(e) => e.key === 'Enter' && handleInviteMember()}
               className="font-mono text-sm"
             />
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            <Button
+              onClick={handleInviteMember}
+              disabled={isInviting}
+              className="gap-2"
+            >
+              <UserPlus size={18} weight="bold" />
+              Invite
+            </Button>
+          </div>
+
+          <ScrollArea className="flex-1">
+            <div className="space-y-3 pr-4">
+              <AnimatePresence>
+                {(teamMembers || []).map((member) => (
+                  <motion.div
+                    key={member.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="border border-border rounded-lg p-4 bg-card/50 backdrop-blur-sm"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-base">{member.name}</h3>
+                          {member.clearanceLevel === 'top-secret' && (
+                            <Crown size={16} weight="fill" className="text-destructive" />
+                          )}
+                          <div className="flex items-center gap-1">
+                            <div className={`w-2 h-2 rounded-full ${getStatusColor(member.status)}`} />
+                            <span className="text-xs text-muted-foreground capitalize">
+                              {member.status}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-2">{member.role}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge 
+                            variant="secondary" 
+                            className={`text-[10px] font-mono uppercase ${getClearanceColor(member.clearanceLevel)}`}
+                          >
+                            {member.clearanceLevel.replace('-', ' ')}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground font-mono">
+                            Last active: {member.lastActive}
+                          </span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveMember(member.id)}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <X size={18} />
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          </ScrollArea>
+
+          <div className="border-t border-border pt-4">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
+              <CheckCircle size={16} weight="fill" className="text-success" />
+              <span>SECURE CHANNEL ACTIVE // {(teamMembers || []).length} TEAM MEMBERS</span>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
