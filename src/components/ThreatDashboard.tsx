@@ -1,8 +1,11 @@
+import { useState } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Shield, Warning, Airplane, Rocket, Target, Eye } from '@phosphor-icons/react'
+import { Button } from '@/components/ui/button'
+import { Shield, Warning, Airplane, Rocket, Target, Eye, LockKey } from '@phosphor-icons/react'
 import { motion } from 'framer-motion'
+import type { ReactElement } from 'react'
 
 interface ThreatItem {
   id: string
@@ -80,14 +83,19 @@ const activeThreats: ThreatItem[] = [
   }
 ]
 
+type ThreatType = 'all' | 'missile' | 'aircraft' | 'drone' | 'uap' | 'cyber'
+
 export function ThreatDashboard() {
-  const getThreatIcon = (type: string) => {
+  const [selectedFilter, setSelectedFilter] = useState<ThreatType>('all')
+
+  const getThreatIcon = (type: string, size = 20) => {
     switch (type) {
-      case 'missile': return <Rocket weight="fill" size={20} />
-      case 'aircraft': return <Airplane weight="fill" size={20} />
-      case 'drone': return <Target weight="fill" size={20} />
-      case 'uap': return <Eye weight="fill" size={20} />
-      default: return <Warning weight="fill" size={20} />
+      case 'missile': return <Rocket weight="fill" size={size} />
+      case 'aircraft': return <Airplane weight="fill" size={size} />
+      case 'drone': return <Target weight="fill" size={size} />
+      case 'uap': return <Eye weight="fill" size={size} />
+      case 'cyber': return <LockKey weight="fill" size={size} />
+      default: return <Warning weight="fill" size={size} />
     }
   }
 
@@ -117,9 +125,30 @@ export function ThreatDashboard() {
     return Math.min(100, (baseLevel + distanceFactor) / 2)
   }
 
-  const criticalCount = activeThreats.filter(t => t.severity === 'critical').length
-  const highCount = activeThreats.filter(t => t.severity === 'high').length
-  const trackingCount = activeThreats.filter(t => t.status === 'tracking').length
+  const filteredThreats = selectedFilter === 'all' 
+    ? activeThreats 
+    : activeThreats.filter(t => t.type === selectedFilter)
+
+  const criticalCount = filteredThreats.filter(t => t.severity === 'critical').length
+  const highCount = filteredThreats.filter(t => t.severity === 'high').length
+  const trackingCount = filteredThreats.filter(t => t.status === 'tracking').length
+
+  const threatTypeCounts = {
+    missile: activeThreats.filter(t => t.type === 'missile').length,
+    aircraft: activeThreats.filter(t => t.type === 'aircraft').length,
+    drone: activeThreats.filter(t => t.type === 'drone').length,
+    uap: activeThreats.filter(t => t.type === 'uap').length,
+    cyber: activeThreats.filter(t => t.type === 'cyber').length,
+  }
+
+  const filterButtons: Array<{ type: ThreatType; label: string; icon: ReactElement }> = [
+    { type: 'all', label: 'All Threats', icon: <Shield weight="fill" size={16} /> },
+    { type: 'missile', label: 'Missiles', icon: getThreatIcon('missile', 16) },
+    { type: 'aircraft', label: 'Aircraft', icon: getThreatIcon('aircraft', 16) },
+    { type: 'drone', label: 'Drones', icon: getThreatIcon('drone', 16) },
+    { type: 'uap', label: 'UAP', icon: getThreatIcon('uap', 16) },
+    { type: 'cyber', label: 'Cyber', icon: getThreatIcon('cyber', 16) },
+  ]
 
   return (
     <div className="space-y-4">
@@ -162,15 +191,78 @@ export function ThreatDashboard() {
       </div>
 
       <Card className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold uppercase tracking-wide text-sm">Active Aerial Threats</h3>
-          <Badge variant="outline" className="font-mono text-xs">
-            LIVE TRACKING
-          </Badge>
+        <div className="flex flex-col gap-4 mb-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold uppercase tracking-wide text-sm">Active Aerial Threats</h3>
+            <Badge variant="outline" className="font-mono text-xs">
+              LIVE TRACKING
+            </Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {filterButtons.map((filter) => {
+              const count = filter.type === 'all' ? activeThreats.length : threatTypeCounts[filter.type as keyof typeof threatTypeCounts]
+              const isActive = selectedFilter === filter.type
+              
+              return (
+                <Button
+                  key={filter.type}
+                  variant={isActive ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter(filter.type)}
+                  className={`gap-2 font-mono text-xs uppercase transition-all ${
+                    isActive 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'hover:bg-primary/10'
+                  }`}
+                >
+                  {filter.icon}
+                  <span>{filter.label}</span>
+                  <Badge 
+                    variant="secondary" 
+                    className={`ml-1 text-[10px] px-1.5 py-0 h-4 ${
+                      isActive 
+                        ? 'bg-primary-foreground/20 text-primary-foreground' 
+                        : 'bg-muted'
+                    }`}
+                  >
+                    {count}
+                  </Badge>
+                </Button>
+              )
+            })}
+          </div>
+
+          {selectedFilter !== 'all' && (
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="font-mono text-xs">
+                Showing {filteredThreats.length} {selectedFilter} threat{filteredThreats.length !== 1 ? 's' : ''}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedFilter('all')}
+                className="text-xs font-mono uppercase h-7"
+              >
+                Clear Filter
+              </Button>
+            </div>
+          )}
         </div>
 
         <div className="space-y-3">
-          {activeThreats.map((threat, index) => (
+          {filteredThreats.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <div className="flex flex-col items-center gap-3">
+                <Shield size={48} weight="duotone" className="opacity-50" />
+                <div>
+                  <div className="font-mono text-sm uppercase">No {selectedFilter} threats detected</div>
+                  <div className="text-xs mt-1">All systems nominal</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            filteredThreats.map((threat, index) => (
             <motion.div
               key={threat.id}
               initial={{ opacity: 0, x: -20 }}
@@ -237,7 +329,8 @@ export function ThreatDashboard() {
                 Detected {threat.detected}
               </div>
             </motion.div>
-          ))}
+            ))
+          )}
         </div>
       </Card>
     </div>
