@@ -1132,72 +1132,21 @@ export function Globe3D({ onThreatSelect }: Globe3DProps) {
               <DropdownMenuItem 
                 onClick={() => setMapStyle('dark')}
                 className={mapStyle === 'dark' ? 'bg-primary/20 text-primary' : ''}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={toggle3D}
-            className={`bg-background/80 backdrop-blur-sm ${is3D ? 'border-primary text-primary' : ''}`}
-            title={is3D ? "Switch to 2D" : "Switch to 3D"}
-          >
-            <Cube size={16} weight={is3D ? "fill" : "regular"} />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleZoomIn}
-            className="bg-background/80 backdrop-blur-sm"
-            title="Zoom In"
-          >
-            <MagnifyingGlassPlus size={16} />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleZoomOut}
-            className="bg-background/80 backdrop-blur-sm"
-            title="Zoom Out"
-          >
-            <MagnifyingGlassMinus size={16} />
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={handleReset}
-            className="bg-background/80 backdrop-blur-sm"
-            title="Reset View"
-          >
-            <ArrowsClockwise size={16} />
-          </Button>
-        </div>
-
-        <div 
-          ref={mapContainerRef} 
-          className="w-full h-[600px] relative"
-        />
-
-        <AnimatePresence>
-          {hoveredThreat && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-                )
-              })}
-              <DropdownMenuSeparator />
-              <div className="px-2 py-3">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-mono text-muted-foreground uppercase">Opacity</label>
-                  <span className="text-xs font-mono font-bold">{Math.round(satelliteOpacity * 100)}%</span>
-                </div>
-                <Slider
-                  value={[satelliteOpacity]}
-                  onValueChange={(value) => setSatelliteOpacity(value[0])}
-                  min={0.1}
-                  max={1.0}
-                  step={0.1}
-                  className="w-full"
-                />
-              </div>
+              >
+                <span className="font-mono text-xs">Dark</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setMapStyle('satellite')}
+                className={mapStyle === 'satellite' ? 'bg-primary/20 text-primary' : ''}
+              >
+                <span className="font-mono text-xs">Satellite</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setMapStyle('terrain')}
+                className={mapStyle === 'terrain' ? 'bg-primary/20 text-primary' : ''}
+              >
+                <span className="font-mono text-xs">Terrain</span>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
