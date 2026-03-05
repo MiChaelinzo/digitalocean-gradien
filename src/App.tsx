@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
@@ -26,6 +26,9 @@ import { BookmarksPanel, useBookmarks } from '@/components/BookmarksPanel'
 import { ReportGenerator } from '@/components/ReportGenerator'
 import { ThreatComparison } from '@/components/ThreatComparison'
 import { ThreatPredictionTimeline } from '@/components/ThreatPredictionTimeline'
+import { AssetUploadModal } from '@/components/AssetUploadModal'
+import { AssetLibrary } from '@/components/AssetLibrary'
+import type { Asset } from '@/types/assets'
 
 interface Message {
   id: string
@@ -50,6 +53,8 @@ function App() {
   const [searchResults, setSearchResults] = useState<Message[]>([])
   const [isSearchActive, setIsSearchActive] = useState(false)
   const [showGradientConfig, setShowGradientConfig] = useState(false)
+  const [showAssetUpload, setShowAssetUpload] = useState(false)
+  const [showAssetLibrary, setShowAssetLibrary] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -291,6 +296,28 @@ When analyzing threats or conflicts:
     toast.success(`Found ${filtered.length} matching results`)
   }
 
+  const handleAnalyzeAsset = async (asset: Asset) => {
+    setActiveTab('intelligence')
+    
+    const prompt = `Analyze this ${asset.type} intelligence asset: ${asset.name}. 
+    
+Perform comprehensive visual analysis including:
+- Object detection and identification
+- Threat assessment
+- Pattern recognition
+- Strategic implications
+- Tactical recommendations
+
+File details:
+- Type: ${asset.type}
+- Size: ${(asset.size / 1024 / 1024).toFixed(2)} MB
+- Uploaded: ${new Date(asset.uploadedAt).toLocaleString()}
+
+Provide detailed intelligence briefing based on visual analysis.`
+
+    await handleSendMessage(prompt)
+  }
+
   const mockThreats = [
     {
       id: 't-001',
@@ -349,6 +376,26 @@ When analyzing threats or conflicts:
           </div>
           
           <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAssetUpload(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Upload Intelligence Assets"
+            >
+              <UploadSimple size={16} weight="bold" />
+              <span className="hidden lg:inline">Upload</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAssetLibrary(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Asset Library"
+            >
+              <FolderOpen size={16} weight="fill" />
+              <span className="hidden lg:inline">Library</span>
+            </Button>
             {messageList.length > 0 && (
               <>
                 <Button
@@ -684,6 +731,24 @@ When analyzing threats or conflicts:
 
       {showGradientConfig && (
         <GradientConfigPanel onClose={() => setShowGradientConfig(false)} />
+      )}
+
+      {showAssetUpload && (
+        <AssetUploadModal
+          isOpen={showAssetUpload}
+          onClose={() => setShowAssetUpload(false)}
+          onUploadComplete={() => {
+            toast.success('Assets uploaded successfully')
+          }}
+        />
+      )}
+
+      {showAssetLibrary && (
+        <AssetLibrary
+          isOpen={showAssetLibrary}
+          onClose={() => setShowAssetLibrary(false)}
+          onAnalyzeAsset={handleAnalyzeAsset}
+        />
       )}
     </div>
   )
