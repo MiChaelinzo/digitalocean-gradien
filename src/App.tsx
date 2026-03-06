@@ -18,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen, Users, Gauge, Layout, SignOut } from '@phosphor-icons/react'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen, Users, Gauge, Layout, SignOut, Radio, Planet } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
@@ -40,8 +40,11 @@ import { OnboardingFlow } from '@/components/OnboardingFlow'
 import { MouseTrail } from '@/components/MouseTrail'
 import { DynamicBackground } from '@/components/DynamicBackground'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
+import { OSINTFeedPanel } from '@/components/OSINTFeedPanel'
+import { SatelliteImageryViewer } from '@/components/SatelliteImageryViewer'
 import type { Asset } from '@/types/assets'
 import type { AuthState, User } from '@/types/auth'
+import type { OSINTFeed } from '@/lib/osint-service'
 
 interface Message {
   id: string
@@ -87,6 +90,8 @@ function App() {
   const [showAdvancedExport, setShowAdvancedExport] = useState(false)
   const [showSystemHealth, setShowSystemHealth] = useState(false)
   const [showDashboardCustom, setShowDashboardCustom] = useState(false)
+  const [showOSINTFeeds, setShowOSINTFeeds] = useState(false)
+  const [showSatelliteImagery, setShowSatelliteImagery] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -413,6 +418,32 @@ Provide detailed intelligence briefing based on visual analysis.`
     toast.info('Logged out successfully')
   }
 
+  const handleOSINTFeedSelect = (feed: OSINTFeed) => {
+    const prompt = `Analyze this OSINT intelligence feed:
+
+Title: ${feed.title}
+Source: ${feed.source}
+Type: ${feed.type}
+Severity: ${feed.severity}
+Description: ${feed.description}
+${feed.location ? `Location: ${feed.location.country || `${feed.location.lat}, ${feed.location.lng}`}` : ''}
+Confidence: ${feed.confidence}%
+Verified: ${feed.verified ? 'Yes' : 'No'}
+Tags: ${feed.tags.join(', ')}
+
+Provide comprehensive intelligence analysis including:
+- Threat assessment and implications
+- Strategic significance
+- Recommended actions
+- Related intelligence patterns
+- Risk evaluation`
+
+    setInput(prompt)
+    setShowOSINTFeeds(false)
+    setActiveTab('intelligence')
+    textareaRef.current?.focus()
+  }
+
   if (!authReady) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -597,6 +628,26 @@ Provide detailed intelligence briefing based on visual analysis.`
             >
               <Layout size={16} weight="fill" />
               <span className="hidden xl:inline">Layout</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowOSINTFeeds(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Live OSINT Intelligence Feeds"
+            >
+              <Radio size={16} weight="fill" />
+              <span className="hidden lg:inline">OSINT Feeds</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSatelliteImagery(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Satellite Imagery Database"
+            >
+              <Planet size={16} weight="fill" />
+              <span className="hidden lg:inline">Satellite</span>
             </Button>
             <Button
               variant="outline"
@@ -1031,6 +1082,24 @@ Provide detailed intelligence briefing based on visual analysis.`
         <DashboardCustomization
           isOpen={showDashboardCustom}
           onClose={() => setShowDashboardCustom(false)}
+        />
+      )}
+
+      {showOSINTFeeds && (
+        <OSINTFeedPanel
+          isOpen={showOSINTFeeds}
+          onClose={() => setShowOSINTFeeds(false)}
+          onFeedSelect={handleOSINTFeedSelect}
+        />
+      )}
+
+      {showSatelliteImagery && (
+        <SatelliteImageryViewer
+          isOpen={showSatelliteImagery}
+          onClose={() => setShowSatelliteImagery(false)}
+          onImageSelect={(imagery) => {
+            toast.info(`Selected ${imagery.metadata.satellite} imagery`)
+          }}
         />
       )}
 
