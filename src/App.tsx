@@ -37,6 +37,9 @@ import { LandingPage } from '@/components/LandingPage'
 import { LoginPage } from '@/components/LoginPage'
 import { SignupPage, type SignupData } from '@/components/SignupPage'
 import { OnboardingFlow } from '@/components/OnboardingFlow'
+import { MouseTrail } from '@/components/MouseTrail'
+import { DynamicBackground } from '@/components/DynamicBackground'
+import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import type { Asset } from '@/types/assets'
 import type { AuthState, User } from '@/types/auth'
 
@@ -54,6 +57,14 @@ function App() {
     hasCompletedOnboarding: false
   })
   const [authView, setAuthView] = useState<'landing' | 'login' | 'signup'>('landing')
+  const [authReady, setAuthReady] = useState(false)
+
+  useEffect(() => {
+    if (authState !== undefined) {
+      const timer = setTimeout(() => setAuthReady(true), 100)
+      return () => clearTimeout(timer)
+    }
+  }, [authState])
   
   const [messages, setMessages] = useKV<Message[]>(`intel-messages-${authState?.user?.id || 'guest'}`, [])
   const [input, setInput] = useState('')
@@ -402,44 +413,90 @@ Provide detailed intelligence briefing based on visual analysis.`
     toast.info('Logged out successfully')
   }
 
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <DynamicBackground />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4 relative z-10"
+        >
+          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+            <Shield size={32} weight="fill" className="text-primary-foreground" />
+          </div>
+          <h1 className="text-2xl font-bold tracking-wider uppercase">SENTINEL</h1>
+          <p className="text-xs text-muted-foreground font-mono uppercase tracking-widest">
+            Initializing Secure Connection...
+          </p>
+          <div className="w-48 h-1 bg-muted rounded-full overflow-hidden mt-2">
+            <motion.div
+              className="h-full bg-primary rounded-full"
+              initial={{ width: '0%' }}
+              animate={{ width: '100%' }}
+              transition={{ duration: 1, ease: 'easeInOut' }}
+            />
+          </div>
+        </motion.div>
+        <MouseTrail />
+      </div>
+    )
+  }
+
   if (!authState?.isAuthenticated) {
     if (authView === 'landing') {
       return (
-        <LandingPage
-          onGetStarted={() => setAuthView('signup')}
-          onLogin={() => setAuthView('login')}
-        />
+        <>
+          <DynamicBackground />
+          <LandingPage
+            onGetStarted={() => setAuthView('signup')}
+            onLogin={() => setAuthView('login')}
+          />
+          <MouseTrail />
+        </>
       )
     }
     
     if (authView === 'login') {
       return (
-        <LoginPage
-          onLogin={handleLogin}
-          onBack={() => setAuthView('landing')}
-          onSignupClick={() => setAuthView('signup')}
-        />
+        <>
+          <DynamicBackground />
+          <LoginPage
+            onLogin={handleLogin}
+            onBack={() => setAuthView('landing')}
+            onSignupClick={() => setAuthView('signup')}
+          />
+          <MouseTrail />
+        </>
       )
     }
     
     if (authView === 'signup') {
       return (
-        <SignupPage
-          onSignup={handleSignup}
-          onBack={() => setAuthView('landing')}
-          onLoginClick={() => setAuthView('login')}
-        />
+        <>
+          <DynamicBackground />
+          <SignupPage
+            onSignup={handleSignup}
+            onBack={() => setAuthView('landing')}
+            onLoginClick={() => setAuthView('login')}
+          />
+          <MouseTrail />
+        </>
       )
     }
   }
 
   if (authState && authState.isAuthenticated && !authState.hasCompletedOnboarding) {
     return (
-      <OnboardingFlow
-        onComplete={handleOnboardingComplete}
-        userName={authState.user?.fullName || 'User'}
-        userRole={authState.user?.role.replace('-', ' ') || 'Analyst'}
-      />
+      <>
+        <DynamicBackground />
+        <OnboardingFlow
+          onComplete={handleOnboardingComplete}
+          userName={authState.user?.fullName || 'User'}
+          userRole={authState.user?.role.replace('-', ' ') || 'Analyst'}
+        />
+        <MouseTrail />
+      </>
     )
   }
 
@@ -485,7 +542,8 @@ Provide detailed intelligence briefing based on visual analysis.`
   const messageList = isSearchActive ? searchResults : (messages || [])
 
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background relative">
+      <DynamicBackground />
       <header className="border-b border-border bg-card/30 backdrop-blur-md sticky top-0 z-10">
         <div className="container mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -665,6 +723,7 @@ Provide detailed intelligence briefing based on visual analysis.`
               <KeyboardIcon size={16} />
               <span className="hidden xl:inline">Shortcuts</span>
             </Button>
+            <ThemeSwitcher />
             <Button
               variant="outline"
               size="sm"
@@ -974,6 +1033,8 @@ Provide detailed intelligence briefing based on visual analysis.`
           onClose={() => setShowDashboardCustom(false)}
         />
       )}
+
+      <MouseTrail />
     </div>
   )
 }
