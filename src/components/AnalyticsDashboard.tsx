@@ -6,12 +6,12 @@ import { TrendUp, TrendDown, Pulse, ChartLine, ChartBar, ChartPieSlice } from '@
 import { motion } from 'framer-motion'
 
 const threatTrendData = [
-  { date: 'Jan 15', critical: 2, high: 5, medium: 12, low: 8 },
-  { date: 'Jan 16', critical: 3, high: 7, medium: 15, low: 10 },
-  { date: 'Jan 17', critical: 1, high: 6, medium: 11, low: 9 },
-  { date: 'Jan 18', critical: 4, high: 9, medium: 18, low: 12 },
-  { date: 'Jan 19', critical: 5, high: 11, medium: 20, low: 14 },
-  { date: 'Jan 20', critical: 3, high: 8, medium: 16, low: 11 },
+  { date: 'Jan 15, 2026', critical: 2, high: 5, medium: 12, low: 8 },
+  { date: 'Jan 16, 2026', critical: 3, high: 7, medium: 15, low: 10 },
+  { date: 'Jan 17, 2026', critical: 1, high: 6, medium: 11, low: 9 },
+  { date: 'Jan 18, 2026', critical: 4, high: 9, medium: 18, low: 12 },
+  { date: 'Jan 19, 2026', critical: 5, high: 11, medium: 20, low: 14 },
+  { date: 'Jan 20, 2026', critical: 3, high: 8, medium: 16, low: 11 },
   { date: 'Today', critical: 6, high: 13, medium: 22, low: 15 }
 ]
 
