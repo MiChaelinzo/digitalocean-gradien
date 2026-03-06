@@ -54,7 +54,7 @@ export function ThemeSwitcher() {
                 <Button
                   variant={mode === 'dark' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => { toggleMode(); }}
+                  onClick={() => setMode('dark')}
                   className="flex-1 gap-1.5 text-xs font-mono"
                 >
                   <Moon size={14} weight="fill" />
@@ -63,7 +63,7 @@ export function ThemeSwitcher() {
                 <Button
                   variant={mode === 'light' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => { toggleMode(); }}
+                  onClick={() => setMode('light')}
                   className="flex-1 gap-1.5 text-xs font-mono"
                 >
                   <Sun size={14} weight="fill" />

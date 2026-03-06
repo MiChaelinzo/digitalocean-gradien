@@ -40,14 +40,17 @@ export function DynamicBackground() {
     function handleResize() {
       width = window.innerWidth
       height = window.innerHeight
-      canvas!.width = width
-      canvas!.height = height
+      if (canvas) {
+        canvas.width = width
+        canvas.height = height
+      }
     }
 
     window.addEventListener('resize', handleResize)
 
     function draw() {
-      ctx!.clearRect(0, 0, width, height)
+      if (!ctx) return
+      ctx.clearRect(0, 0, width, height)
 
       const themeMode = document.documentElement.getAttribute('data-theme-mode')
       const dotColor = themeMode === 'light' ? '50, 60, 80' : '140, 180, 255'
@@ -63,10 +66,10 @@ export function DynamicBackground() {
         if (p.y < 0) p.y = height
         if (p.y > height) p.y = 0
 
-        ctx!.beginPath()
-        ctx!.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        ctx!.fillStyle = `rgba(${dotColor}, ${p.opacity})`
-        ctx!.fill()
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${dotColor}, ${p.opacity})`
+        ctx.fill()
 
         for (let j = i + 1; j < particles.length; j++) {
           const p2 = particles[j]
@@ -76,12 +79,12 @@ export function DynamicBackground() {
 
           if (dist < 150) {
             const lineOpacity = (1 - dist / 150) * 0.04
-            ctx!.beginPath()
-            ctx!.moveTo(p.x, p.y)
-            ctx!.lineTo(p2.x, p2.y)
-            ctx!.strokeStyle = `rgba(${lineColor}, ${lineOpacity})`
-            ctx!.lineWidth = 0.5
-            ctx!.stroke()
+            ctx.beginPath()
+            ctx.moveTo(p.x, p.y)
+            ctx.lineTo(p2.x, p2.y)
+            ctx.strokeStyle = `rgba(${lineColor}, ${lineOpacity})`
+            ctx.lineWidth = 0.5
+            ctx.stroke()
           }
         }
       }

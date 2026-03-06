@@ -84,7 +84,7 @@ function applyTheme(mode: ThemeMode, color: ThemeColor) {
   root.style.setProperty('--primary', colorTheme.primary)
   root.style.setProperty('--ring', colorTheme.primary)
   root.style.setProperty('--accent', colorTheme.accent)
-  root.style.setProperty('--primary-foreground', mode === 'light' ? 'oklch(1 0 0)' : 'oklch(1 0 0)')
+  root.style.setProperty('--primary-foreground', 'oklch(1 0 0)')
   root.style.setProperty('--accent-foreground', 'oklch(1 0 0)')
 
   root.style.setProperty('--background', modeOverrides.background)

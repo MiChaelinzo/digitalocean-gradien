@@ -59,7 +59,9 @@ export function MouseTrail() {
 
       ctx.beginPath()
       ctx.arc(p.x, p.y, radius, 0, Math.PI * 2)
-      ctx.fillStyle = `rgba(100, 149, 237, ${opacity})`
+      const themeMode = document.documentElement.getAttribute('data-theme-mode')
+      const trailColor = themeMode === 'light' ? '60, 80, 120' : '100, 149, 237'
+      ctx.fillStyle = `rgba(${trailColor}, ${opacity})`
       ctx.fill()
 
       return true
