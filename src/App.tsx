@@ -18,7 +18,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen, Users, Gauge, Layout, SignOut, Radio, Planet } from '@phosphor-icons/react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { PaperPlaneRight, Plus, Shield, Globe, Target, ChatCircle, Clock, Keyboard as KeyboardIcon, FileArrowDown, Bell, ChartLine, MagnifyingGlass, BookmarkSimple, ArrowsLeftRight, FileText, TrendUp, GearSix, Microphone, Stop, UploadSimple, FolderOpen, Users, Gauge, Layout, SignOut, Radio, Planet, MapTrifold } from '@phosphor-icons/react'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SearchFilter, type SearchFilters } from '@/components/SearchFilter'
@@ -42,6 +43,7 @@ import { DynamicBackground } from '@/components/DynamicBackground'
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { OSINTFeedPanel } from '@/components/OSINTFeedPanel'
 import { SatelliteImageryViewer } from '@/components/SatelliteImageryViewer'
+import { GeoFrontMap } from '@/components/GeoFrontMap'
 import type { Asset } from '@/types/assets'
 import type { AuthState, User } from '@/types/auth'
 import type { OSINTFeed } from '@/lib/osint-service'
@@ -92,6 +94,7 @@ function App() {
   const [showDashboardCustom, setShowDashboardCustom] = useState(false)
   const [showOSINTFeeds, setShowOSINTFeeds] = useState(false)
   const [showSatelliteImagery, setShowSatelliteImagery] = useState(false)
+  const [showGeoFront, setShowGeoFront] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -652,6 +655,16 @@ Provide comprehensive intelligence analysis including:
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setShowGeoFront(true)}
+              className="gap-2 text-xs font-mono uppercase"
+              title="Geospatial Intelligence Map"
+            >
+              <MapTrifold size={16} weight="fill" />
+              <span className="hidden lg:inline">Geo Intel</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowAssetUpload(true)}
               className="gap-2 text-xs font-mono uppercase"
               title="Upload Intelligence Assets"
@@ -1101,6 +1114,48 @@ Provide comprehensive intelligence analysis including:
             toast.info(`Selected ${imagery.metadata.satellite} imagery`)
           }}
         />
+      )}
+
+      {showGeoFront && (
+        <Dialog open={showGeoFront} onOpenChange={setShowGeoFront}>
+          <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold uppercase tracking-wide">
+                Geospatial Intelligence Map
+              </DialogTitle>
+            </DialogHeader>
+            <GeoFrontMap 
+              onZoneSelect={(zone) => {
+                const prompt = `Provide comprehensive intelligence analysis on conflict zone: ${zone.name}
+
+Location: ${zone.coordinates.lat.toFixed(4)}°N, ${zone.coordinates.lng.toFixed(4)}°E
+Type: ${zone.type.replace('-', ' ')}
+Status: ${zone.status}
+Severity: ${zone.severity}
+Parties Involved: ${zone.parties.join(', ')}
+Military Presence: ${zone.militarypresence.join(', ')}
+${zone.civiliancasualties ? `Civilian Casualties: ${zone.civiliancasualties.toLocaleString()}` : ''}
+Area: ${zone.area.toLocaleString()} km²
+${zone.controlledBy ? `Controlled By: ${zone.controlledBy}` : ''}
+
+Context: ${zone.description}
+
+Provide:
+- Current situation assessment
+- Threat level analysis and escalation probability
+- Strategic implications for regional stability
+- Recommended defensive posture and countermeasures
+- Intelligence gaps and reconnaissance priorities
+- Humanitarian considerations`
+
+                setInput(prompt)
+                setShowGeoFront(false)
+                setActiveTab('intelligence')
+                textareaRef.current?.focus()
+              }}
+            />
+          </DialogContent>
+        </Dialog>
       )}
 
       <MouseTrail />
